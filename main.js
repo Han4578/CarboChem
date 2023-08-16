@@ -8,10 +8,11 @@ let gridArray = []
 let RowArray = []
 export let lineArray = []
 export let elementArray = []
+export let selectedElement = 'C'
+export let selectedBonds = 4
 let columnNum = 5
 let rowNum = 5
 let gridSize = 50
-export let selectedElement = 'C'
 
 function reset() { 
     container.innerHTML = ''
@@ -21,7 +22,7 @@ function reset() {
     elementArray = []
     columnNum = 5
     rowNum = 5
-    changeSelection('C')
+    changeSelection('C', 4)
     container.classList.remove('start-up')
     container.classList.remove('start-left')
 
@@ -33,7 +34,7 @@ function reset() {
         container.appendChild(row)
     }
 
-    let carbon = new Element(selectedElement, gridArray[12])
+    let carbon = new Element(selectedElement, gridArray[12], 4)
     carbon.displayElement()
 
     refreshClickableLines()
@@ -136,11 +137,20 @@ function checkScreenSize() {
     else container.classList.remove('start-up')
 }
 
-function changeSelection(element) {
+function changeSelection(element, bond) {
     for (const action of actions) {
         (action.innerText == element)? action.classList.add('selected'): action.classList.remove('selected');
     }
     selectedElement = element
+    selectedBonds = bond
+}
+
+export function lineObjectMatch(element) {
+    return lineArray.filter(l => {return l.element == element})[0]    
+}
+
+export function ElementObjectMatch(element) {
+    return elementArray.filter(e => {return e.element == element})[0]    
 }
 
 
@@ -149,7 +159,7 @@ window.addEventListener('resize', checkScreenSize)
 
 for (const action of actions) {
     action.addEventListener('click', () => {
-        changeSelection(action.innerText)
+        changeSelection(action.innerText, parseInt(action.dataset.bond))
     })
 }
 
@@ -159,11 +169,11 @@ window.addEventListener('keydown', e => {
     switch (key) {
         case 'C':
         case 'c':
-            changeSelection('C')
+            changeSelection('C', 4)
             break;
         case 'H':
         case 'h':
-            changeSelection('H')
+            changeSelection('H', 1)
         break;
         case 'R':
         case 'r':

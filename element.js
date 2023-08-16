@@ -2,10 +2,11 @@ import { Line } from "./line.js"
 import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray } from "./main.js"
 
 export class Element {
-    constructor(name, location) {
+    constructor(name, location, bonds) {
         this.name = name
         this.x = parseInt(location.dataset.x)
         this.y = parseInt(location.dataset.y)
+        this.bonds = bonds
         this.element = undefined
         this.left = undefined
         this.right = undefined
@@ -17,16 +18,18 @@ export class Element {
         this.updatePosition()
         let emptyGrids = this.scan()
 
-        for (const grid of emptyGrids) {
-            let lineObj
+        if (4 - emptyGrids.length !== this.bonds) {
+            for (const grid of emptyGrids) {
+                let lineObj
 
-            if (parseInt(grid.dataset.x) !== this.x) {
-                lineObj = new Line('h', grid)
-            } else lineObj = new Line('v', grid)
+                if (parseInt(grid.dataset.x) !== this.x) {
+                    lineObj = new Line('h', grid)
+                } else lineObj = new Line('v', grid)
 
 
-            lineObj.addLine()
-            lineArray.push(lineObj)
+                lineObj.addLine()
+                lineArray.push(lineObj)
+            }
         }
 
         refreshClickableLines()

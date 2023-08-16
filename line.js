@@ -1,4 +1,4 @@
-import { selectedElement, locateGrid, elementArray, lineArray } from "./main.js"
+import { selectedElement, selectedBonds, locateGrid, elementArray, lineArray, lineObjectMatch, ElementObjectMatch } from "./main.js"
 import { Element } from "./element.js"
 
 export class Line {
@@ -10,20 +10,33 @@ export class Line {
     }
 
     addElement() {
-        let lineObj = lineArray.filter(l => {return l.element == this})[0]
+        let lineObj = lineObjectMatch(this)
         let sideGrids = lineObj.scan()
 
-        let oldElem = sideGrids.filter(g => {return g.children.length > 0})[0]
+        let oldGrid = sideGrids.filter(g => {return g.children.length > 0})[0]
         let newGrid = sideGrids.filter(g => {return g.children.length == 0})[0]
 
-        const element = new Element(selectedElement, newGrid);
+        let oldObj = ElementObjectMatch(oldGrid.children[0])
+        let newObj = new Element(selectedElement, newGrid, selectedBonds);
 
-        if (parseInt(newGrid.dataset.x) > this.x) element.left = oldElem
-        if (parseInt(newGrid.dataset.x) < this.x) element.right = oldElem
-        if (parseInt(newGrid.dataset.y) > this.y) element.down = oldElem
-        if (parseInt(newGrid.dataset.y) < this.y)  element.up = oldElem
+        if (parseInt(newGrid.dataset.x) > lineObj.x) { // old left new right
+            oldObj.right = newObj
+            newObj.left = oldObj
+        }
+        if (parseInt(newGrid.dataset.x) < lineObj.x) { // new left old right
+            oldObj.left = newObj
+            newObj.right = oldObj
+        }
+        if (parseInt(newGrid.dataset.y) > lineObj.y) { // old up new down
+            oldObj.down = newObj
+            newObj.up = oldObj
+        }
+        if (parseInt(newGrid.dataset.y) < lineObj.y)  { // new up old down
+            oldObj.up = newObj
+            newObj.down = oldObj
+        }
 
-        element.displayElement()
+        newObj.displayElement()
     }
 
     updatePosition() {
