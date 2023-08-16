@@ -1,14 +1,17 @@
+import { Element } from "./element.js"
+import { Line } from "./line.js"
+
 let container = document.querySelector('.container')
 let resetButton = document.querySelector('.reset')
 let actions = document.querySelectorAll('.action')
 let gridArray = []
 let RowArray = []
-let lineArray = []
-let elementArray = []
+export let lineArray = []
+export let elementArray = []
 let columnNum = 5
 let rowNum = 5
 let gridSize = 50
-let selectedElement = 'C'
+export let selectedElement = 'C'
 
 function reset() { 
     container.innerHTML = ''
@@ -30,11 +33,8 @@ function reset() {
         container.appendChild(row)
     }
 
-    addElement(gridArray[12])
-    addLine(gridArray[7], 'vertical')
-    addLine(gridArray[11], 'horizontal')
-    addLine(gridArray[13], 'horizontal')
-    addLine(gridArray[17], 'vertical')
+    let carbon = new Element(selectedElement, gridArray[12])
+    carbon.displayElement()
 
     refreshClickableLines()
 }
@@ -62,120 +62,19 @@ function addRow(c) {
     return row
 }
 
-function addElement(grid) {
-    const element = document.createElement('div');
-
-    element.classList.add('element')
-    element.innerText = selectedElement
-
-    grid.appendChild(element)
-    elementArray.push(element)
-    return element
+export function locateGrid(x, y) {
+    return gridArray.filter(g => {return parseInt(g.dataset.x) == x && parseInt(g.dataset.y) == y})[0]
 }
 
-function addLine(grid, direction) {
-    const line = document.createElement('div');
-
-    line.classList.add(direction)
-    line.dataset.direction = direction
-    
-    grid.appendChild(line)
-    lineArray.push(line)
-    return line
-}
-
-function addBubble(e) {
-    let line = e.target
-    let grid = locateGrid(line.dataset.availableX, line.dataset.availableY)
-    let direction = line.dataset.direction
-
-    
-    addElement(grid)
-    refreshLines(grid)
-    refreshClickableLines()
-}
-
-function locateGrid(x, y) {
-    return gridArray.filter(g => {return g.dataset.x == x && g.dataset.y == y})[0]
-}
-
-function refreshClickableLines() {
-    let clickableArray = []
-    let grids = []
-    
-    for (const line of lineArray) {
-        let grid = line.parentElement
-        let x = parseInt(grid.dataset.x)
-        let y = parseInt(grid.dataset.y)
-
-        if (line.dataset.direction == 'vertical') {
-            let upperGrid = locateGrid(x, y - 1)
-            let lowerGrid = locateGrid(x, y + 1)
-            grids = [upperGrid, lowerGrid]
-
-        } else {
-            let leftGrid = locateGrid(x - 1, y)
-            let rightGrid = locateGrid(x + 1, y)
-            grids = [leftGrid, rightGrid]
-
-        }
-
-        let emptyGrids = grids.filter(g => {return g.innerHTML == ''})
-
-        if (emptyGrids.length > 0) {
-            let emptyGrid = emptyGrids[0]
-            line.dataset.availableX = emptyGrid.dataset.x
-            line.dataset.availableY = emptyGrid.dataset.y
-            clickableArray.push(line)
-        }
-        line.classList.remove('clickable')
-        line.removeEventListener('click', addBubble)
-    }
-
-    for (const clickable of clickableArray) {
-        clickable.classList.add('clickable')
-        clickable.addEventListener('click', addBubble)
+export function refreshClickableLines() {
+    for (const lineObj of lineArray) {
+        lineObj.element.removeEventListener('click', lineObj.addElement)
+        lineObj.element.classList.remove('clickable')
+        lineObj.checkClickability()
     }
 }
 
-function refreshLines(grid) {
-    let x = parseInt(grid.dataset.x)
-    let y = parseInt(grid.dataset.y)
-
-    if (x == 1) {
-        newLine('left')
-        newLine('left')
-        x += 2
-    }
-    if (y == 1) {
-        newLine('up')
-        newLine('up')   
-        y += 2
-    }
-
-    let upperGrid = locateGrid(x, y - 1)
-    let lowerGrid = locateGrid(x, y + 1)
-    let leftGrid = locateGrid(x - 1, y)
-    let rightGrid = locateGrid(x + 1, y)
-    
-    if (rightGrid == undefined) {
-        newLine('right')
-        newLine('right')
-        rightGrid = locateGrid(x + 1, y)
-    }
-    if (lowerGrid == undefined) {
-        newLine('down')
-        newLine('down')
-        lowerGrid = locateGrid(x, y + 1)
-    }
-
-    if (upperGrid.innerHTML == '') addLine(upperGrid, 'vertical')
-    if (lowerGrid.innerHTML == '') addLine(lowerGrid, 'vertical')
-    if (leftGrid.innerHTML == '') addLine(leftGrid, 'horizontal')
-    if (rightGrid.innerHTML == '') addLine(rightGrid, 'horizontal')
-}
-
-function newLine(direction) {
+export function newLine(direction) {
     if (direction == 'left' || direction == 'right') {
         for (const row of RowArray) {
             addGrid(row)
@@ -200,7 +99,7 @@ function move(direction) {
     let stuff = elementArray.concat(lineArray)
 
     for (const s of stuff) {
-        let grid = s.parentElement
+        let grid = s.element.parentElement
         let x = parseInt(grid.dataset.x)
         let y = parseInt(grid.dataset.y)
         
@@ -222,7 +121,9 @@ function move(direction) {
                 break;
         }
         let newGrid = locateGrid(x, y)
-        newGrid.appendChild(s)
+        newGrid.appendChild(s.element)
+
+        s.updatePosition()
     }
 
 }
@@ -263,6 +164,10 @@ window.addEventListener('keydown', e => {
         case 'H':
         case 'h':
             changeSelection('H')
+        break;
+        case 'R':
+        case 'r':
+            reset()
         break;
     
         default:
