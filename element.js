@@ -16,7 +16,8 @@ export class Element {
 
     refreshLines() {
         this.updatePosition()
-        let emptyGrids = this.scan()
+        let grids = this.scan()
+        let emptyGrids = grids.filter(g => {return g.children.length == 0})
 
         if (4 - emptyGrids.length !== this.bonds) {
             for (const grid of emptyGrids) {
@@ -67,7 +68,7 @@ export class Element {
             lowerGrid = locateGrid(this.x, this.y + 1)
         }
 
-        return [upperGrid, lowerGrid, leftGrid, rightGrid].filter(g => {return g.children.length == 0})
+        return [upperGrid, lowerGrid, leftGrid, rightGrid]
     }
 
     displayElement() {
@@ -82,5 +83,15 @@ export class Element {
         elementArray.push(this)
 
         this.refreshLines()
+    }
+    
+    checkForExpansion(exception) {
+        let grids = this.scan()
+
+        for (const grid of grids) {
+            if (grid == exception.element) return
+
+
+        }
     }
 }

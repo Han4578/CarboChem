@@ -37,6 +37,7 @@ export class Line {
         }
 
         newObj.displayElement()
+        oldObj.checkForExpansion(newObj)
     }
 
     updatePosition() {
