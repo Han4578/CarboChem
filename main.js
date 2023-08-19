@@ -75,29 +75,94 @@ export function refreshClickableLines() {
     }
 }
 
-export function newLine(direction) {
-    if (direction == 'left' || direction == 'right') {
-        for (const row of RowArray) {
-            addGrid(row)
+export function refreshAllLines() {
+    for (const line of lineArray) {
+        line.element.parentElement.removeChild(line.element)
+    }
+
+    lineArray = []
+    let neighbourArray = []
+    let combinationArray = []
+
+    for (const element of elementArray) {
+        let neighbourElements = [element.left, element.right, element.up, element.down].filter(e => {return e !== undefined})
+
+        for (const n of neighbourElements) {
+            neighbourArray.push([element, n])
         }
-        columnNum++
+    }
+
+    for (let array of neighbourArray) {
+        array.sort((a, b) => a.y - b.y)
+        array.sort((a, b) => a.x - b.x)
+    }
+
+    neighbourArray.sort((a, b) => a[0].x - b[0].x)
+    neighbourArray.sort((a, b) => a[0].y - b[0].y)
+    neighbourArray.sort((a, b) => a[1].x - b[1].x)
+    neighbourArray.sort((a, b) => a[1].y - b[1].y)
+
+    for (let i = 0; i < neighbourArray.length; i = i + 2) {
+        combinationArray.push(neighbourArray[i]);
+    }
+
+    for (let array of combinationArray) {
+        let smallerObj = array[0]
+        let biggerObj = array[1]
+        
+        if (biggerObj.x == smallerObj.x) {
+            for (let i = smallerObj.y + 1; i < biggerObj.y; i++) {
+                lineArray.push(new Line('v', locateGrid(smallerObj.x, i)) )
+            }
+        } else {
+            for (let i = smallerObj.x + 1; i < biggerObj.x; i++) {
+                lineArray.push(new Line('h', locateGrid(i, smallerObj.y)) )
+            }            
+        }
+
+    }
+
+    for (const line of lineArray) {
+        line.displayLine()
+    }
+
+    for (const element of elementArray) {
+        element.refreshLines()
+    }
+
+    refreshClickableLines()
+}
+
+export function newLine(direction, n = 1) {
+    if (direction == 'left' || direction == 'right') {
+        for (let i = 0; i < n; i++) {            
+            for (const row of RowArray) {
+                addGrid(row)
+            }
+            columnNum++
+        }
         checkScreenSize()
     } else {
-        let row = addRow(container)
-        for (let i = 0; i < columnNum; i++) {
-            addGrid(row)
+        for (let i = 0; i < n; i++) {            
+            let row = addRow(container)
+            for (let i = 0; i < columnNum; i++) {
+                addGrid(row)
+            }
+            rowNum++
         }
-        rowNum++
         checkScreenSize()
     }
 
-    if (direction == 'left' || direction == 'up') {
-        move(direction)
+    if (direction == 'left') {
+        move('right', elementArray.concat(lineArray), n)
+    }
+    
+    if (direction == 'up') {
+        move('down', elementArray.concat(lineArray), n)
     }
 }
 
-function move(direction) {
-    let stuff = elementArray.concat(lineArray)
+export function move(direction, stuff, steps) {
 
     for (const s of stuff) {
         let grid = s.element.parentElement
@@ -105,23 +170,27 @@ function move(direction) {
         let y = parseInt(grid.dataset.y)
         
         switch (direction) { //away from direction
-            case 'left':
-                x +=1
-                break;
             case 'right':
-                x -=1
+                x += steps
                 break;
-            case 'up':
-                y +=1
+            case 'left':
+                x -= steps
                 break;
             case 'down':
-                y -=1
+                y += steps
+                break;
+            case 'up':
+                y -= steps
                 break;
             default:
                 alert('failed to move')
                 break;
         }
         let newGrid = locateGrid(x, y)
+        while (newGrid == undefined) {
+            newLine(direction, 1)
+            newGrid = locateGrid(x, y)
+        }
         newGrid.appendChild(s.element)
 
         s.updatePosition()

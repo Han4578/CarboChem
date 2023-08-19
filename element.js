@@ -1,5 +1,5 @@
 import { Line } from "./line.js"
-import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray } from "./main.js"
+import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines } from "./main.js"
 
 export class Element {
     constructor(name, location, bonds) {
@@ -12,10 +12,10 @@ export class Element {
         this.right = undefined
         this.up = undefined
         this.down = undefined
+        this.extended = false
     }
 
     refreshLines() {
-        this.updatePosition()
         let grids = this.scan()
         let emptyGrids = grids.filter(g => {return g.children.length == 0})
 
@@ -28,7 +28,7 @@ export class Element {
                 } else lineObj = new Line('v', grid)
 
 
-                lineObj.addLine()
+                lineObj.displayLine()
                 lineArray.push(lineObj)
             }
         }
@@ -43,12 +43,10 @@ export class Element {
 
     scan() {
         if (this.x == 1) {
-            newLine('left')
-            newLine('left')
+            newLine('left', 2)
         }
         if (this.y == 1) {
-            newLine('up')
-            newLine('up')   
+            newLine('up', 2)   
         }
 
 
@@ -58,13 +56,11 @@ export class Element {
         let rightGrid = locateGrid(this.x + 1, this.y)
 
         if (rightGrid == undefined) {
-            newLine('right')
-            newLine('right')
+            newLine('right', 2)
             rightGrid = locateGrid(this.x + 1, this.y)
         }
         if (lowerGrid == undefined) {
-            newLine('down')
-            newLine('down')
+            newLine('down', 2)
             lowerGrid = locateGrid(this.x, this.y + 1)
         }
 
@@ -85,13 +81,62 @@ export class Element {
         this.refreshLines()
     }
     
-    checkForExpansion(exception) {
-        let grids = this.scan()
+    checkForExpansion(direction) {
+        if (direction.name !== 'C' || this.extended) return
 
-        for (const grid of grids) {
-            if (grid == exception.element) return
+        let refreshNeeded = false
+        
+        if (direction == this.up || direction == this.down) {
+            if (this.right !== undefined && this.right.name == 'C') {
 
+                let ElementsToMove = [this.right, ...this.right.trace(this)]
+                
+                move('right', ElementsToMove, 2)
+                refreshNeeded = true
+            }
+
+            if (this.left !== undefined && this.left.name == 'C') {
+
+                let ElementsToMove = [this, ...this.trace(this.left)]
+
+                move('right', ElementsToMove, 2)
+                refreshNeeded = true
+            }
+            
+        } else {
+            if (this.down !== undefined && this.down.name == 'C') {
+
+                let ElementsToMove = [this.down, ...this.down.trace(this)]
+                
+                move('down', ElementsToMove, 2)
+                refreshNeeded = true
+            }
+
+            if (this.up !== undefined && this.up.name == 'C') {
+
+                let ElementsToMove = [this, ...this.trace(this.up)]
+
+                move('down', ElementsToMove, 2)
+                refreshNeeded = true
+            }
 
         }
+
+        if (refreshNeeded) {
+            refreshAllLines();
+            this.extended = true
+        }
+    }
+
+    trace(exception) {
+        let elementsToTrace = [this.left, this.right, this.up, this.down].filter(e => {return e !== undefined && e !== exception})
+        let finalTraced = elementsToTrace
+
+        for (const element of elementsToTrace) {
+            let tracedElements = element.trace(this)
+            finalTraced = finalTraced.concat(tracedElements)
+        }
+
+        return finalTraced
     }
 }

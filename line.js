@@ -59,7 +59,7 @@ export class Line {
         }
     }
 
-    addLine() {
+    displayLine() {
         const lineElem = document.createElement('div');
         let grid = locateGrid(this.x, this.y)
         
