@@ -133,6 +133,54 @@ export function refreshAllLines() {
     refreshClickableLines()
 }
 
+export function checkAllForBlockage() {
+    let hasChanged = false
+    do {
+        hasChanged = false
+        let emptyGrids = []
+
+        for (const lineObj of lineArray) {
+            let sideGrids = lineObj.scan().filter(g => {return g.children.length == 0})
+
+            if (sideGrids.length > 0) emptyGrids.push(sideGrids[0])
+        }
+
+        for (const grid of emptyGrids) {    
+            let x = parseInt(grid.dataset.x)
+            let y = parseInt(grid.dataset.y)
+            let upperGrid = locateGrid(x, y - 1)
+            let lowerGrid = locateGrid(x, y + 1)
+            let leftGrid = locateGrid(x - 1, y)
+            let rightGrid = locateGrid(x + 1, y)
+            let elementToPush
+
+            let neighbourgrids = [upperGrid, lowerGrid, leftGrid, rightGrid].filter(g => {return g !== undefined && g.children.length > 0})
+
+            if (neighbourgrids.length == 1) continue
+
+            if (neighbourgrids.includes(lowerGrid)) 
+            elementToPush = [ElementObjectMatch(locateGrid(x, y + 2).children[0]), 'down']
+            
+            else if (neighbourgrids.includes(upperGrid)) 
+            elementToPush = [ElementObjectMatch(locateGrid(x, y - 2).children[0]), 'up']
+
+            else elementToPush = [ElementObjectMatch(locateGrid(x + 2, y).children[0]), 'right']
+
+            let elemObj = elementToPush[0]
+            let direction = elementToPush[1]
+            if (direction == 'left' || direction == 'up') {
+                newLine(direction, 2)
+            } 
+            move(direction, [elemObj], 2)
+            elemObj.backTrace(direction, elemObj)
+        
+            refreshAllLines()
+            hasChanged = true
+            break
+        }
+    } while (hasChanged)
+}
+
 export function newLine(direction, n = 1) {
     if (direction == 'left' || direction == 'right') {
         for (let i = 0; i < n; i++) {            
@@ -163,11 +211,9 @@ export function newLine(direction, n = 1) {
 }
 
 export function move(direction, stuff, steps) {
-
     for (const s of stuff) {
-        let grid = s.element.parentElement
-        let x = parseInt(grid.dataset.x)
-        let y = parseInt(grid.dataset.y)
+        let x = s.x
+        let y = s.y
         
         switch (direction) { //away from direction
             case 'right':

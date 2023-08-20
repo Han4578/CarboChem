@@ -1,5 +1,5 @@
 import { Line } from "./line.js"
-import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines } from "./main.js"
+import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch } from "./main.js"
 
 export class Element {
     constructor(name, location, bonds) {
@@ -12,7 +12,10 @@ export class Element {
         this.right = undefined
         this.up = undefined
         this.down = undefined
-        this.extended = false
+        this.extendedLeft = false
+        this.extendedRight = false
+        this.extendedUp = false
+        this.extendedDown = false
     }
 
     refreshLines() {
@@ -82,50 +85,55 @@ export class Element {
     }
     
     checkForExpansion(direction) {
-        if (direction.name !== 'C' || this.extended) return
+        if (direction.name !== 'C') return
 
         let refreshNeeded = false
         
         if (direction == this.up || direction == this.down) {
-            if (this.right !== undefined && this.right.name == 'C') {
+            if (this.right !== undefined && this.right.name == 'C' && !this.extendedRight) {
 
                 let ElementsToMove = [this.right, ...this.right.trace(this)]
                 
                 move('right', ElementsToMove, 2)
                 refreshNeeded = true
+                this.extendedRight = true
             }
 
-            if (this.left !== undefined && this.left.name == 'C') {
+            if (this.left !== undefined && this.left.name == 'C' && !this.extendedLeft) {
 
                 let ElementsToMove = [this, ...this.trace(this.left)]
 
                 move('right', ElementsToMove, 2)
                 refreshNeeded = true
+                this.extendedLeft = true
             }
             
         } else {
-            if (this.down !== undefined && this.down.name == 'C') {
+            if (this.down !== undefined && this.down.name == 'C' && !this.extendedDown) {
 
                 let ElementsToMove = [this.down, ...this.down.trace(this)]
                 
                 move('down', ElementsToMove, 2)
                 refreshNeeded = true
+                this.extendedDown = true
             }
 
-            if (this.up !== undefined && this.up.name == 'C') {
+            if (this.up !== undefined && this.up.name == 'C' && !this.extendedUp) {
 
                 let ElementsToMove = [this, ...this.trace(this.up)]
 
                 move('down', ElementsToMove, 2)
                 refreshNeeded = true
+                this.extendedUp = true
             }
 
         }
 
         if (refreshNeeded) {
             refreshAllLines();
-            this.extended = true
+            return true
         }
+        return false
     }
 
     trace(exception) {
@@ -138,5 +146,17 @@ export class Element {
         }
 
         return finalTraced
+    }
+
+    backTrace(direction, exception) {
+        let neighbourElements = [this.left, this.right, this.up, this.down].filter(e => {return e !== undefined})
+
+        for (const element of neighbourElements) {
+            if (element == exception) continue
+            if ((element.x == this.x && element.y == this.y) || (element.x !== this.x && element.y !== this.y)) {
+                move(direction, [element], 2)
+                element.backTrace(direction, this)
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-import { selectedElement, selectedBonds, locateGrid, elementArray, lineArray, lineObjectMatch, ElementObjectMatch } from "./main.js"
+import { selectedElement, selectedBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage } from "./main.js"
 import { Element } from "./element.js"
 
 export class Line {
@@ -38,6 +38,7 @@ export class Line {
 
         newObj.displayElement()
         oldObj.checkForExpansion(newObj)
+        checkAllForBlockage()
     }
 
     updatePosition() {
