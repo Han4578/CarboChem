@@ -75,6 +75,14 @@ body {
     background-color: lightblue;
 }
 
+.deletable {
+    border: 2px solid red;
+}
+
+.deletable:hover {
+    border: 2px solid rgb(138, 5, 5);
+}
+
 .start-up {
     justify-content: start;
 }
@@ -94,7 +102,7 @@ body {
     gap: 5vw;
 }
 
-.action, .reset {
+.action-bar > button {
     height: 80%;
     aspect-ratio: 1;
     background-color: #dadada;
@@ -104,10 +112,10 @@ body {
     font-size: 32px;
 }
 
-.action:hover, .reset:hover {
+.action-bar > button:hover {
     filter: brightness(0.8);
 }
 
-.selected {
+button.selected {
     background-color: yellow;
 }

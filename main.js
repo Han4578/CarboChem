@@ -3,6 +3,8 @@ import { Line } from "./line.js"
 
 let container = document.querySelector('.container')
 let resetButton = document.querySelector('.reset')
+let autoButton = document.querySelector('.auto')
+let deleteButton = document.querySelector('.delete')
 let actions = document.querySelectorAll('.action')
 let gridArray = []
 let RowArray = []
@@ -75,7 +77,8 @@ export function refreshClickableLines() {
     }
 }
 
-export function refreshAllLines() {
+export function refreshAllLines(refreshClickable) {
+    console.log('refreshed');
     for (const line of lineArray) {
         line.element.parentElement.removeChild(line.element)
     }
@@ -127,10 +130,10 @@ export function refreshAllLines() {
     }
 
     for (const element of elementArray) {
-        element.refreshLines()
+        element.refreshLines(false)
     }
 
-    refreshClickableLines()
+    if (refreshClickable) refreshClickableLines()
 }
 
 export function checkAllForBlockage() {
@@ -174,11 +177,12 @@ export function checkAllForBlockage() {
             move(direction, [elemObj], 2)
             elemObj.backTrace(direction, elemObj)
         
-            refreshAllLines()
+            refreshAllLines(false)
             hasChanged = true
             break
         }
     } while (hasChanged)
+    refreshClickableLines()
 }
 
 export function newLine(direction, n = 1) {
@@ -260,8 +264,38 @@ function changeSelection(element, bond) {
     selectedBonds = bond
 }
 
+function changeDelete() {
+    for (const action of actions) {
+        (action.classList.contains('delete'))? action.classList.add('selected'): action.classList.remove('selected');
+    }
+    for (const lineObj of lineArray) {
+        lineObj.element.removeEventListener('click', lineObj.addElement)
+        lineObj.element.classList.remove('clickable')
+    }
+    refreshDeletion()
+}
+
+export function refreshDeletion() {
+    for (const element of elementArray) {
+        element.checkForDeletion()
+    }
+}
+
+function autoFillHydrogen() {
+    let originalElement = selectedElement
+    let originalBond = selectedBonds
+    changeSelection('H', 1)
+
+    for (const line of lineArray) {
+        if (!line.element.classList.contains('clickable')) continue
+        line.addElement()
+    }
+    changeSelection(originalElement, originalBond)
+
+}
+
 export function lineObjectMatch(element) {
-    return lineArray.filter(l => {return l.element == element})[0]    
+    return lineArray.filter(l => {return l.element == element || l == element})[0]    
 }
 
 export function ElementObjectMatch(element) {
@@ -270,11 +304,14 @@ export function ElementObjectMatch(element) {
 
 
 resetButton.addEventListener('click', reset)
+autoButton.addEventListener('click', autoFillHydrogen)
+// deleteButton.addEventListener('click', deleteElement)
 window.addEventListener('resize', checkScreenSize)
 
 for (const action of actions) {
     action.addEventListener('click', () => {
-        changeSelection(action.innerText, parseInt(action.dataset.bond))
+        if (action.classList.contains('delete')) changeDelete()
+        else changeSelection(action.innerText, parseInt(action.dataset.bond))
     })
 }
 
@@ -289,11 +326,15 @@ window.addEventListener('keydown', e => {
         case 'H':
         case 'h':
             changeSelection('H', 1)
-        break;
+            break;
         case 'R':
         case 'r':
             reset()
-        break;
+            break;
+        case 'A':
+        case 'a':
+            autoFillHydrogen()
+            break;
     
         default:
             break;

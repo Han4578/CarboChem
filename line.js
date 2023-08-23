@@ -12,7 +12,6 @@ export class Line {
     addElement() {
         let lineObj = lineObjectMatch(this)
         let sideGrids = lineObj.scan()
-
         let oldGrid = sideGrids.filter(g => {return g.children.length > 0})[0]
         let newGrid = sideGrids.filter(g => {return g.children.length == 0})[0]
 
@@ -35,7 +34,6 @@ export class Line {
             oldObj.up = newObj
             newObj.down = oldObj
         }
-
         newObj.displayElement()
         oldObj.checkForExpansion(newObj)
         checkAllForBlockage()

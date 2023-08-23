@@ -1,5 +1,5 @@
 import { Line } from "./line.js"
-import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch } from "./main.js"
+import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch, lineObjectMatch, refreshDeletion } from "./main.js"
 
 export class Element {
     constructor(name, location, bonds) {
@@ -18,7 +18,7 @@ export class Element {
         this.extendedDown = false
     }
 
-    refreshLines() {
+    refreshLines(refreshClickable) {
         let grids = this.scan()
         let emptyGrids = grids.filter(g => {return g.children.length == 0})
 
@@ -36,7 +36,7 @@ export class Element {
             }
         }
 
-        refreshClickableLines()
+        if (refreshClickable) refreshClickableLines()
     }
 
     updatePosition() {
@@ -81,7 +81,7 @@ export class Element {
         grid.appendChild(elementElem)
         elementArray.push(this)
 
-        this.refreshLines()
+        this.refreshLines(true)
     }
     
     checkForExpansion(direction) {
@@ -130,10 +130,57 @@ export class Element {
         }
 
         if (refreshNeeded) {
-            refreshAllLines();
+            refreshAllLines(true);
             return true
         }
         return false
+    }
+
+    checkForDeletion() {
+        let deletable = false
+
+        if (this.name == 'H') deletable = true
+        else {
+            let neighbourElements = [this.up, this.down, this.left, this.right].filter(e => {return e !== undefined})
+
+            if (neighbourElements.length == 1) deletable = true
+            else {
+                let neighbourCarbons = neighbourElements.filter(e => {return e.name == 'C'})
+
+                if (neighbourCarbons.length == 1) deletable = true
+            }
+        }
+        if (deletable) {
+            this.element.classList.add('deletable')
+            this.element.addEventListener('click', this.delete)
+        } else {            
+            this.element.classList.remove('deletable')
+            this.element.removeEventListener('click', this.delete)
+        }
+    }
+
+    delete() {
+        let thisObject = ElementObjectMatch(this)
+        let targets = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && e.name == 'H'})
+        let leftOvers = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && e.name !== 'H'})
+        targets.push(thisObject)
+
+        for (const obj of targets) {
+            console.log(obj);
+            obj.element.parentElement.removeChild(obj.element)
+            let index = elementArray.indexOf(obj)
+            elementArray.splice(index, 1)
+        }
+
+        for (const leftOver of leftOvers) {
+            if (leftOver.left == thisObject) leftOver.left = undefined
+            else if (leftOver.right == thisObject) leftOver.right = undefined
+            else if (leftOver.up == thisObject) leftOver.up = undefined
+            else if (leftOver.down == thisObject) leftOver.down = undefined
+        }
+
+        refreshAllLines(false)
+        refreshDeletion()
     }
 
     trace(exception) {
