@@ -138,8 +138,11 @@ export class Element {
 
     checkForDeletion() {
         let deletable = false
-
-        if (this.name == 'H') deletable = true
+        let carbons = elementArray.filter(e => {return e.name == 'C'})
+        let noCarbon = (carbons.length == 1)? true: false;
+        
+        if (this.name == 'C' && noCarbon) deletable = false
+        else if (this.name == 'H') deletable = true
         else {
             let neighbourElements = [this.up, this.down, this.left, this.right].filter(e => {return e !== undefined})
 
@@ -150,6 +153,7 @@ export class Element {
                 if (neighbourCarbons.length == 1) deletable = true
             }
         }
+
         if (deletable) {
             this.element.classList.add('deletable')
             this.element.addEventListener('click', this.delete)
@@ -166,7 +170,6 @@ export class Element {
         targets.push(thisObject)
 
         for (const obj of targets) {
-            console.log(obj);
             obj.element.parentElement.removeChild(obj.element)
             let index = elementArray.indexOf(obj)
             elementArray.splice(index, 1)

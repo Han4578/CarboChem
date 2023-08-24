@@ -6,6 +6,7 @@ let resetButton = document.querySelector('.reset')
 let autoButton = document.querySelector('.auto')
 let deleteButton = document.querySelector('.delete')
 let actions = document.querySelectorAll('.action')
+let deleteMode = false
 let gridArray = []
 let RowArray = []
 export let lineArray = []
@@ -27,6 +28,7 @@ function reset() {
     changeSelection('C', 4)
     container.classList.remove('start-up')
     container.classList.remove('start-left')
+    deleteMode = false
 
     for (let i = 0; i < 5; i++) {
         const row = addRow(container)
@@ -78,7 +80,6 @@ export function refreshClickableLines() {
 }
 
 export function refreshAllLines(refreshClickable) {
-    console.log('refreshed');
     for (const line of lineArray) {
         line.element.parentElement.removeChild(line.element)
     }
@@ -260,6 +261,16 @@ function changeSelection(element, bond) {
     for (const action of actions) {
         (action.innerText == element)? action.classList.add('selected'): action.classList.remove('selected');
     }
+    
+    if (deleteMode) {
+        let deletableElements = elementArray.filter(e => {return e.element.classList.contains("deletable")})
+        for (const elemObj of deletableElements) {
+            elemObj.element.classList.remove('deletable')
+            elemObj.element.removeEventListener('click', elemObj.delete)
+        }
+
+        refreshClickableLines()
+    }
     selectedElement = element
     selectedBonds = bond
 }
@@ -273,6 +284,7 @@ function changeDelete() {
         lineObj.element.classList.remove('clickable')
     }
     refreshDeletion()
+    deleteMode = true
 }
 
 export function refreshDeletion() {
