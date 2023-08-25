@@ -1,12 +1,13 @@
-import { selectedElement, selectedBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage } from "./main.js"
+import { selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage } from "./main.js"
 import { Element } from "./element.js"
 
 export class Line {
-    constructor(orientaion, location) {
+    constructor(orientaion, location, bonds) {
         this.orientaion = orientaion
         this.x = parseInt(location.dataset.x)
         this.y = parseInt(location.dataset.y)
         this.element = undefined
+        this.bonds = bonds
     }
 
     addElement() {
@@ -16,7 +17,7 @@ export class Line {
         let newGrid = sideGrids.filter(g => {return g.children.length == 0})[0]
 
         let oldObj = ElementObjectMatch(oldGrid.children[0])
-        let newObj = new Element(selectedElement, newGrid, selectedBonds);
+        let newObj = new Element(selectedElement, newGrid, selectedElementBonds);
 
         if (parseInt(newGrid.dataset.x) > lineObj.x) { // old left new right
             oldObj.right = newObj

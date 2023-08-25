@@ -1,5 +1,5 @@
 import { Line } from "./line.js"
-import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch, lineObjectMatch, refreshDeletion } from "./main.js"
+import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch, lineObjectMatch, refreshDeletion, selectedLineBonds} from "./main.js"
 
 export class Element {
     constructor(name, location, bonds) {
@@ -16,6 +16,10 @@ export class Element {
         this.extendedRight = false
         this.extendedUp = false
         this.extendedDown = false
+        this.leftBond = 0
+        this.rightBond = 0
+        this.upBond = 0
+        this.downBond = 0
     }
 
     refreshLines(refreshClickable) {
@@ -27,8 +31,8 @@ export class Element {
                 let lineObj
 
                 if (parseInt(grid.dataset.x) !== this.x) {
-                    lineObj = new Line('h', grid)
-                } else lineObj = new Line('v', grid)
+                    lineObj = new Line('h', grid, selectedLineBonds)
+                } else lineObj = new Line('v', grid, selectedLineBonds)
 
 
                 lineObj.displayLine()

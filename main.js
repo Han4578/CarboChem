@@ -4,7 +4,6 @@ import { Line } from "./line.js"
 let container = document.querySelector('.container')
 let resetButton = document.querySelector('.reset')
 let autoButton = document.querySelector('.auto')
-let deleteButton = document.querySelector('.delete')
 let actions = document.querySelectorAll('.action')
 let deleteMode = false
 let gridArray = []
@@ -12,7 +11,8 @@ let RowArray = []
 export let lineArray = []
 export let elementArray = []
 export let selectedElement = 'C'
-export let selectedBonds = 4
+export let selectedElementBonds = 4
+export let selectedLineBonds = 1
 let columnNum = 5
 let rowNum = 5
 let gridSize = 50
@@ -272,7 +272,7 @@ function changeSelection(element, bond) {
         refreshClickableLines()
     }
     selectedElement = element
-    selectedBonds = bond
+    selectedElementBonds = bond
 }
 
 function changeDelete() {
@@ -295,7 +295,7 @@ export function refreshDeletion() {
 
 function autoFillHydrogen() {
     let originalElement = selectedElement
-    let originalBond = selectedBonds
+    let originalBond = selectedElementBonds
     changeSelection('H', 1)
 
     for (const line of lineArray) {
@@ -317,7 +317,6 @@ export function ElementObjectMatch(element) {
 
 resetButton.addEventListener('click', reset)
 autoButton.addEventListener('click', autoFillHydrogen)
-// deleteButton.addEventListener('click', deleteElement)
 window.addEventListener('resize', checkScreenSize)
 
 for (const action of actions) {
