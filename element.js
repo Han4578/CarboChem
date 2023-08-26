@@ -25,14 +25,7 @@ export class Element {
     refreshLines(refreshClickable) {
         let grids = this.scan()
         let emptyGrids = grids.filter(g => {return g.children.length == 0})
-        let filledGrids = grids.filter(g => {return g.children.length > 0})
-        let lineObjs = filledGrids.map(g => {return lineObjectMatch(g.children[0])})
-        let bonds = 0
-
-        for (const lineObj of lineObjs) {
-            bonds += lineObj.bonds
-        }
-
+        let bonds = this.leftBond + this.rightBond + this.upperBond + this.downBond
         if (this.bonds - bonds >= selectedLineBonds) {
             for (const grid of emptyGrids) {
                 let lineObj
@@ -40,7 +33,6 @@ export class Element {
                 if (parseInt(grid.dataset.x) !== this.x) {
                     lineObj = new Line('h', grid, selectedLineBonds)
                 } else lineObj = new Line('v', grid, selectedLineBonds)
-
 
                 lineObj.displayLine()
                 lineArray.push(lineObj)

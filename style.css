@@ -41,6 +41,9 @@ body {
     aspect-ratio: 1;
     /* border: 1px solid black; */
     font-size: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .element {
@@ -51,27 +54,27 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 1;
+    background-color: #dadada;
 }
 
 .v {
     width: 10%;
     height: 100%;
-    margin: 0 45%;
     background-color: black;
 }
 
 .h {
     width: 100%;
     height: 10%;
-    margin: 45% 0;
     background-color: black;
 }
 
-.clickable {
+.v.clickable, .h.clickable, .multi.clickable > .h, .multi.clickable > .v {
     background-color: blue;
 }
 
-.clickable:hover {
+.v.clickable:hover, .h.clickable:hover, .multi.clickable:hover > .h, .multi.clickable:hover > .v {
     background-color: lightblue;
 }
 
@@ -165,10 +168,23 @@ div.selected {
 }
 
 .multi {
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 5px;
+    align-items: center;
+    gap: 5%;
+}
+
+.multi > .v {
+    width: 8%;
+    height: 105%;
+}
+
+.multi > .h {
+    height: 8%;
+    width: 105%;
 }
 
 .name {

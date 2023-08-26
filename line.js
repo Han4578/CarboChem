@@ -1,4 +1,4 @@
-import { selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage } from "./main.js"
+import { selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage, selectedLineBonds, removeClickableLines} from "./main.js"
 import { Element } from "./element.js"
 
 export class Line {
@@ -22,19 +22,32 @@ export class Line {
         if (parseInt(newGrid.dataset.x) > lineObj.x) { // old left new right
             oldObj.right = newObj
             newObj.left = oldObj
+            oldObj.rightBond = selectedLineBonds
+            newObj.leftBond = selectedLineBonds
         }
         if (parseInt(newGrid.dataset.x) < lineObj.x) { // new left old right
             oldObj.left = newObj
             newObj.right = oldObj
+            oldObj.leftBond = selectedLineBonds
+            newObj.rightBond = selectedLineBonds
         }
         if (parseInt(newGrid.dataset.y) > lineObj.y) { // old up new down
             oldObj.down = newObj
             newObj.up = oldObj
+            oldObj.downBond = selectedLineBonds
+            newObj.upperBond = selectedLineBonds
         }
         if (parseInt(newGrid.dataset.y) < lineObj.y)  { // new up old down
             oldObj.up = newObj
             newObj.down = oldObj
+            oldObj.upperBond = selectedLineBonds
+            newObj.downBond = selectedLineBonds
         }
+
+        lineObj.element.classList.remove('clickable')
+        lineObj.element.removeEventListener('click', lineObj.addElement)
+
+        removeClickableLines()
         newObj.displayElement()
         oldObj.checkForExpansion(newObj)
         checkAllForBlockage()
@@ -63,7 +76,17 @@ export class Line {
         const lineElem = document.createElement('div');
         let grid = locateGrid(this.x, this.y)
         
-        lineElem.classList.add(this.orientaion)
+        if (this.bonds == 1) {
+            lineElem.classList.add(this.orientaion)
+        } else {
+            lineElem.classList.add('multi')
+            for (let i = 0; i < this.bonds; i++) {
+                const line = document.createElement('div');
+                line.classList.add(this.orientaion)
+                lineElem.appendChild(line)
+            }
+            lineElem.style.flexDirection = (this.orientaion == 'v')? 'row': "column";
+        }
         this.element = lineElem
         grid.appendChild(lineElem)
     }

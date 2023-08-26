@@ -4,14 +4,13 @@ import { Line } from "./line.js"
 let container = document.querySelector('.container')
 let resetButton = document.querySelector('.reset')
 let autoButton = document.querySelector('.auto')
+let deleteButton = document.querySelector('.delete')
 let elementButton = document.querySelector('.element-button')
 let elementMenu = document.querySelector('.element-menu')
 let elementSelection = document.querySelectorAll('.element-selection')
 let lineButton = document.querySelector('.line-button')
 let lineMenu = document.querySelector('.line-menu')
 let lineSelection = document.querySelectorAll('.line-selection')
-let doubleTemplate = document.querySelector('double-template')
-let tripleTemplate = document.querySelector('triple-template')
 let deleteMode = false
 let gridArray = []
 let RowArray = []
@@ -83,6 +82,19 @@ export function refreshClickableLines() {
         lineObj.element.removeEventListener('click', lineObj.addElement)
         lineObj.element.classList.remove('clickable')
         lineObj.checkClickability()
+    }
+}
+
+export function removeClickableLines() {
+    let clickableLines = lineArray.filter(l => {return l.element.classList.contains('clickable')})
+    for (const line of clickableLines) {
+        line.element.parentElement.removeChild(line.element)
+        let index = lineArray.indexOf(line)
+        lineArray.splice(index, 1)
+    }
+    for (const element of elementArray) {
+        if (selectedLineBonds > selectedElementBonds) break
+        element.refreshLines(false)
     }
 }
 
@@ -273,33 +285,67 @@ function changeElementSelection(element, bond) {
     elementMenu.classList.remove('show')
     
     if (deleteMode) {
+        deleteButton.classList.remove('selected')
         let deletableElements = elementArray.filter(e => {return e.element.classList.contains("deletable")})
         for (const elemObj of deletableElements) {
             elemObj.element.classList.remove('deletable')
             elemObj.element.removeEventListener('click', elemObj.delete)
         }
-
+        deleteMode = false
         refreshClickableLines()
     }
     selectedElement = element
     selectedElementBonds = parseInt(bond)
+    removeClickableLines()
+    refreshClickableLines()
 }
 
-function changeLineSelection(src, bond) {
-    selectedLineBonds = bond
-    lineButton.src = src
+function changeLineSelection(bond) {
+    selectedLineBonds = parseInt(bond)
+    switch (selectedLineBonds) {
+        case 1:
+            lineButton.src = './images/single.svg'
+            break;
+        case 2:
+            lineButton.src = './images/double.png'
+            break;
+        case 3:
+            lineButton.src = './images/triple.png'
+            break;
+        default:
+            break;
+    }
+    if (deleteMode) {
+        deleteButton.classList.remove('selected')
+        let deletableElements = elementArray.filter(e => {return e.element.classList.contains("deletable")})
+        for (const elemObj of deletableElements) {
+            elemObj.element.classList.remove('deletable')
+            elemObj.element.removeEventListener('click', elemObj.delete)
+        }
+        deleteMode = false
+        refreshClickableLines()
+    }
+    removeClickableLines()
+    refreshClickableLines()
 }
 
 function changeDelete() {
-    for (const action of actions) {
-        (action.classList.contains('delete'))? action.classList.add('selected'): action.classList.remove('selected');
+    deleteButton.classList.toggle('selected')
+    deleteMode = !deleteMode
+    if (deleteMode) {
+        for (const lineObj of lineArray) {
+            lineObj.element.removeEventListener('click', lineObj.addElement)
+            lineObj.element.classList.remove('clickable')
+        }
+        refreshDeletion()
+    } else {
+        let deletableElements = elementArray.filter(e => {return e.element.classList.contains("deletable")})
+        for (const elemObj of deletableElements) {
+            elemObj.element.classList.remove('deletable')
+            elemObj.element.removeEventListener('click', elemObj.delete)
+        }
+        refreshClickableLines()
     }
-    for (const lineObj of lineArray) {
-        lineObj.element.removeEventListener('click', lineObj.addElement)
-        lineObj.element.classList.remove('clickable')
-    }
-    refreshDeletion()
-    deleteMode = true
 }
 
 export function refreshDeletion() {
@@ -310,14 +356,17 @@ export function refreshDeletion() {
 
 function autoFillHydrogen() {
     let originalElement = selectedElement
-    let originalBond = selectedElementBonds
+    let originalElementBond = selectedElementBonds
+    let originalLineBond = selectedLineBonds
     changeElementSelection('H', 1)
+    changeLineSelection(1)
 
     for (const line of lineArray) {
         if (!line.element.classList.contains('clickable')) continue
         line.addElement()
     }
-    changeElementSelection(originalElement, originalBond)
+    changeElementSelection(originalElement, originalElementBond)
+    changeLineSelection(originalLineBond)
 
 }
 
@@ -333,6 +382,7 @@ export function ElementObjectMatch(element) {
 resetButton.addEventListener('click', reset)
 autoButton.addEventListener('click', autoFillHydrogen)
 window.addEventListener('resize', checkScreenSize)
+deleteButton.addEventListener('click', changeDelete)
 
 window.addEventListener('click', () => {
     elementMenu.classList.remove('show')
@@ -359,7 +409,7 @@ for (const element of elementSelection) {
 
 for (const element of lineSelection) {
     element.addEventListener('click', () => {
-        changeLineSelection(element.src, element.dataset.bond)
+        changeLineSelection(element.dataset.bond)
     })
 }
 
@@ -375,7 +425,7 @@ window.addEventListener('keydown', e => {
         case 'H':
         case 'h':
             changeElementSelection('H', 1)
-            changeLineSelection('./images/single.svg', 1)
+            changeLineSelection(1)
             break;
         case 'R':
         case 'r':
@@ -385,14 +435,18 @@ window.addEventListener('keydown', e => {
         case 'a':
             autoFillHydrogen()
             break;
+        case 'D':
+        case 'd':
+            changeDelete()
+            break;
         case '1':
-            changeLineSelection('./images/single.svg', 1)
+            changeLineSelection(1)
             break;
         case '2':
-            changeLineSelection('./images/double.png', 2)
+            changeLineSelection(2)
             break;
         case '3':
-            changeLineSelection('./images/triple.png', 3)
+            changeLineSelection(3)
             break;
     
         default:
