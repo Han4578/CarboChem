@@ -4,7 +4,14 @@ import { Line } from "./line.js"
 let container = document.querySelector('.container')
 let resetButton = document.querySelector('.reset')
 let autoButton = document.querySelector('.auto')
-let actions = document.querySelectorAll('.action')
+let elementButton = document.querySelector('.element-button')
+let elementMenu = document.querySelector('.element-menu')
+let elementSelection = document.querySelectorAll('.element-selection')
+let lineButton = document.querySelector('.line-button')
+let lineMenu = document.querySelector('.line-menu')
+let lineSelection = document.querySelectorAll('.line-selection')
+let doubleTemplate = document.querySelector('double-template')
+let tripleTemplate = document.querySelector('triple-template')
 let deleteMode = false
 let gridArray = []
 let RowArray = []
@@ -25,7 +32,7 @@ function reset() {
     elementArray = []
     columnNum = 5
     rowNum = 5
-    changeSelection('C', 4)
+    changeElementSelection('C', 4)
     container.classList.remove('start-up')
     container.classList.remove('start-left')
     deleteMode = false
@@ -116,11 +123,11 @@ export function refreshAllLines(refreshClickable) {
         
         if (biggerObj.x == smallerObj.x) {
             for (let i = smallerObj.y + 1; i < biggerObj.y; i++) {
-                lineArray.push(new Line('v', locateGrid(smallerObj.x, i)) )
+                lineArray.push(new Line('v', locateGrid(smallerObj.x, i), biggerObj.upperBond) )
             }
         } else {
             for (let i = smallerObj.x + 1; i < biggerObj.x; i++) {
-                lineArray.push(new Line('h', locateGrid(i, smallerObj.y)) )
+                lineArray.push(new Line('h', locateGrid(i, smallerObj.y), biggerObj.leftBond) )
             }            
         }
 
@@ -253,14 +260,17 @@ function checkScreenSize() {
     if (columnNum > window.innerWidth / gridSize) container.classList.add('start-left')
     else container.classList.remove('start-left')
 
-    if (rowNum > window.innerHeight * 0.8 / gridSize) container.classList.add('start-up')
+    if (rowNum > window.innerHeight * 0.9 / gridSize) container.classList.add('start-up')
     else container.classList.remove('start-up')
 }
 
-function changeSelection(element, bond) {
-    for (const action of actions) {
+function changeElementSelection(element, bond) {
+    for (const action of elementSelection) {
         (action.innerText == element)? action.classList.add('selected'): action.classList.remove('selected');
     }
+
+    elementButton.innerText = element
+    elementMenu.classList.remove('show')
     
     if (deleteMode) {
         let deletableElements = elementArray.filter(e => {return e.element.classList.contains("deletable")})
@@ -272,7 +282,12 @@ function changeSelection(element, bond) {
         refreshClickableLines()
     }
     selectedElement = element
-    selectedElementBonds = bond
+    selectedElementBonds = parseInt(bond)
+}
+
+function changeLineSelection(src, bond) {
+    selectedLineBonds = bond
+    lineButton.src = src
 }
 
 function changeDelete() {
@@ -296,13 +311,13 @@ export function refreshDeletion() {
 function autoFillHydrogen() {
     let originalElement = selectedElement
     let originalBond = selectedElementBonds
-    changeSelection('H', 1)
+    changeElementSelection('H', 1)
 
     for (const line of lineArray) {
         if (!line.element.classList.contains('clickable')) continue
         line.addElement()
     }
-    changeSelection(originalElement, originalBond)
+    changeElementSelection(originalElement, originalBond)
 
 }
 
@@ -319,12 +334,35 @@ resetButton.addEventListener('click', reset)
 autoButton.addEventListener('click', autoFillHydrogen)
 window.addEventListener('resize', checkScreenSize)
 
-for (const action of actions) {
-    action.addEventListener('click', () => {
-        if (action.classList.contains('delete')) changeDelete()
-        else changeSelection(action.innerText, parseInt(action.dataset.bond))
+window.addEventListener('click', () => {
+    elementMenu.classList.remove('show')
+    lineMenu.classList.remove('show')
+})
+
+elementButton.addEventListener('click', () => {
+    elementMenu.classList.toggle('show')
+    lineMenu.classList.remove('show')
+    event.stopPropagation()
+})
+
+lineButton.addEventListener('click', () => {
+    lineMenu.classList.toggle('show')
+    elementMenu.classList.remove('show')
+    event.stopPropagation()
+})
+
+for (const element of elementSelection) {
+    element.addEventListener('click', () => {
+        changeElementSelection(element.innerText, element.dataset.bond)
     })
 }
+
+for (const element of lineSelection) {
+    element.addEventListener('click', () => {
+        changeLineSelection(element.src, element.dataset.bond)
+    })
+}
+
 
 window.addEventListener('keydown', e => {
     let key = e.key
@@ -332,11 +370,12 @@ window.addEventListener('keydown', e => {
     switch (key) {
         case 'C':
         case 'c':
-            changeSelection('C', 4)
+            changeElementSelection('C', 4)
             break;
         case 'H':
         case 'h':
-            changeSelection('H', 1)
+            changeElementSelection('H', 1)
+            changeLineSelection('./images/single.svg', 1)
             break;
         case 'R':
         case 'r':
@@ -345,6 +384,15 @@ window.addEventListener('keydown', e => {
         case 'A':
         case 'a':
             autoFillHydrogen()
+            break;
+        case '1':
+            changeLineSelection('./images/single.svg', 1)
+            break;
+        case '2':
+            changeLineSelection('./images/double.png', 2)
+            break;
+        case '3':
+            changeLineSelection('./images/triple.png', 3)
             break;
     
         default:

@@ -18,15 +18,22 @@ export class Element {
         this.extendedDown = false
         this.leftBond = 0
         this.rightBond = 0
-        this.upBond = 0
+        this.upperBond = 0
         this.downBond = 0
     }
 
     refreshLines(refreshClickable) {
         let grids = this.scan()
         let emptyGrids = grids.filter(g => {return g.children.length == 0})
+        let filledGrids = grids.filter(g => {return g.children.length > 0})
+        let lineObjs = filledGrids.map(g => {return lineObjectMatch(g.children[0])})
+        let bonds = 0
 
-        if (4 - emptyGrids.length !== this.bonds) {
+        for (const lineObj of lineObjs) {
+            bonds += lineObj.bonds
+        }
+
+        if (this.bonds - bonds >= selectedLineBonds) {
             for (const grid of emptyGrids) {
                 let lineObj
 
@@ -55,7 +62,6 @@ export class Element {
         if (this.y == 1) {
             newLine('up', 2)   
         }
-
 
         let upperGrid = locateGrid(this.x, this.y - 1)
         let lowerGrid = locateGrid(this.x, this.y + 1)
@@ -135,9 +141,7 @@ export class Element {
 
         if (refreshNeeded) {
             refreshAllLines(true);
-            return true
         }
-        return false
     }
 
     checkForDeletion() {

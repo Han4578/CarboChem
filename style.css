@@ -23,7 +23,7 @@ body {
 .container {
     background-color: #dadada;
     width: 100vw;
-    height: 80vh;
+    height: 90vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -92,30 +92,91 @@ body {
 }
 
 .action-bar {
-    width: 100vw;
-    height: 20vh;
+    width: 10vw;
+    height: 100vh;
     position: absolute;
-    background-color: #b1aeae;
+    right: 0;
+    top: 0;
+    padding-top: 5vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.action-bar > *, .element-selection, .line-selection {
+    width: 60px;
+    aspect-ratio: 1;
+    background-color: #dadada;
+    border: inset 2px white;
+    box-shadow: 0 0 10px #616161;
+    border-radius: 50%;
+    font-size: 16px;
+    pointer-events: all;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 5vw;
 }
 
-.action-bar > button {
-    height: 80%;
-    aspect-ratio: 1;
-    background-color: #dadada;
-    border: solid 1vh white;
-    box-shadow: 0 0 1vh #dadada;
-    border-radius: 20px;
-    font-size: 32px;
-}
-
-.action-bar > button:hover {
+.action-bar > *:hover, .element-selection:hover, .line-selection:hover {
     filter: brightness(0.8);
 }
 
-button.selected {
+div.selected {
     background-color: yellow;
+}
+
+.element-menu, .line-menu {
+    background-color: rgb(255, 255, 255, 50%);
+    width: 20vw;
+    min-height: 60px;
+    position: absolute;
+    top: 115px;
+    right: 8vw;
+    padding: 10px;
+    border-radius: 15px;
+    display: none;
+    gap: 1vw;
+    flex-wrap: wrap;
+}
+
+.line-menu {
+    top: 185px;
+    width: 14vw;
+}
+
+.show {
+    display: flex;
+}
+
+.element-selection, .line-selection {    
+    width: 50px;
+    box-shadow: 0 0 10px #a6a6a6;
+}
+
+.line-button {
+    padding: 5%;
+}
+
+.line-selection {
+    padding: 2%;
+}
+
+.multi {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+}
+
+.name {
+    width: 100%;
+    height: 10vh;
+    background-color: #b0b0b0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 48px;
 }

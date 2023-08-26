@@ -8,16 +8,40 @@
     <script src="main.js" type="module" defer></script>
 </head>
 <body>
+    <template class="double-template">
+        <div class="multi">
+            <div></div>
+            <div></div>
+        </div>
+    </template>
+    <template class="triple-template">
+        <div class="multi">
+            <div></div>
+            <div></div>
+        </div>
+    </template>
     <!-- <div class="head">CARBOCHEM</div> -->
     <div class="container">
 
     </div>
     <div class="action-bar">
-        <button class="reset">Reset</button>
-        <button class="action selected" data-bond = 4>C</button>
-        <button class="action" data-bond="1">H</button>
-        <button class="action delete">Delete</button>
-        <button class="auto">Auto Fill Hydrogen</button>
+        <div class="reset">Reset</div>
+        <div class="element-button">C</div>
+        <img class="line-button" src="./images/single.svg"></img>
+        <div class="delete">Del</div>
+        <div class="auto">Auto</div>
+    </div>
+    <div class="element-menu">
+        <div class="element-selection selected" data-bond = 4>C</div>
+        <div class="element-selection" data-bond = 1>H</div>
+    </div>
+    <div class="line-menu">
+        <img class="line-selection" data-bond= 1 src="./images/single.svg"></img>
+        <img class="line-selection" data-bond= 2 src="./images/double.png"></img>
+        <img class="line-selection" data-bond= 3 src="./images/triple.png"></img>
+    </div>
+    <div class="name">
+        Meth
     </div>
 </body>
 </html>
