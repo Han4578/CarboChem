@@ -1,9 +1,9 @@
-import { selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage, selectedLineBonds, removeClickableLines} from "./main.js"
+import { selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage, selectedLineBonds, removeClickableLines, lineArray} from "./main.js"
 import { Element } from "./element.js"
 
 export class Line {
-    constructor(orientaion, location, bonds) {
-        this.orientaion = orientaion
+    constructor(orientation, location, bonds) {
+        this.orientation = orientation
         this.x = parseInt(location.dataset.x)
         this.y = parseInt(location.dataset.y)
         this.element = undefined
@@ -20,24 +20,32 @@ export class Line {
         let newObj = new Element(selectedElement, newGrid, selectedElementBonds);
 
         if (parseInt(newGrid.dataset.x) > lineObj.x) { // old left new right
+            oldObj.checkForExpansion(newObj, 'right')
+
             oldObj.right = newObj
             newObj.left = oldObj
             oldObj.rightBond = selectedLineBonds
             newObj.leftBond = selectedLineBonds
         }
         if (parseInt(newGrid.dataset.x) < lineObj.x) { // new left old right
+            oldObj.checkForExpansion(newObj, 'left')
+
             oldObj.left = newObj
             newObj.right = oldObj
             oldObj.leftBond = selectedLineBonds
             newObj.rightBond = selectedLineBonds
         }
         if (parseInt(newGrid.dataset.y) > lineObj.y) { // old up new down
+            oldObj.checkForExpansion(newObj, 'down')
+
             oldObj.down = newObj
             newObj.up = oldObj
             oldObj.downBond = selectedLineBonds
             newObj.upperBond = selectedLineBonds
         }
         if (parseInt(newGrid.dataset.y) < lineObj.y)  { // new up old down
+            oldObj.checkForExpansion(newObj, 'up')
+
             oldObj.up = newObj
             newObj.down = oldObj
             oldObj.upperBond = selectedLineBonds
@@ -46,11 +54,16 @@ export class Line {
 
         lineObj.element.classList.remove('clickable')
         lineObj.element.removeEventListener('click', lineObj.addElement)
-
-        removeClickableLines()
-        newObj.displayElement()
-        oldObj.checkForExpansion(newObj)
-        checkAllForBlockage()
+        if (selectedElement == 'H') {
+            newObj.displayElement()
+        } else {
+            removeClickableLines()
+            checkAllForBlockage(newObj)
+            newObj.displayElement()
+            checkAllForBlockage()
+            newObj.checkForBlockage()
+            checkAllForBlockage()
+        }
     }
 
     updatePosition() {
@@ -60,12 +73,12 @@ export class Line {
     }
 
     scan() {
-        if (this.orientaion == 'v') {
+        if (this.orientation == 'v') {
             let upperGrid = locateGrid(this.x, this.y - 1)
             let lowerGrid = locateGrid(this.x, this.y + 1)
             return [upperGrid, lowerGrid]
         }
-        if (this.orientaion == 'h') {
+        if (this.orientation == 'h') {
             let leftGrid = locateGrid(this.x - 1, this.y)
             let rightGrid = locateGrid(this.x + 1, this.y)
             return [leftGrid, rightGrid]
@@ -76,17 +89,14 @@ export class Line {
         const lineElem = document.createElement('div');
         let grid = locateGrid(this.x, this.y)
         
-        if (this.bonds == 1) {
-            lineElem.classList.add(this.orientaion)
-        } else {
-            lineElem.classList.add('multi')
-            for (let i = 0; i < this.bonds; i++) {
-                const line = document.createElement('div');
-                line.classList.add(this.orientaion)
-                lineElem.appendChild(line)
-            }
-            lineElem.style.flexDirection = (this.orientaion == 'v')? 'row': "column";
+        lineElem.classList.add('multi')
+        for (let i = 0; i < this.bonds; i++) {
+            const line = document.createElement('div');
+            line.classList.add(this.orientation)
+            lineElem.appendChild(line)
         }
+        lineElem.style.flexDirection = (this.orientation == 'v')? 'row': "column";
+
         this.element = lineElem
         grid.appendChild(lineElem)
     }
@@ -98,6 +108,38 @@ export class Line {
         if (emptyGrid.length > 0) {
             this.element.addEventListener('click', this.addElement)
             this.element.classList.add('clickable')
+        }
+    }
+
+    delete() {
+        this.element.parentElement.removeChild(this.element)
+        let index = lineArray.indexOf(this)
+        lineArray.splice(index, 1)
+    }
+
+    trace() {
+        let sideGrids = this.scan()
+        for (const grid of sideGrids) {
+            if (grid.children.length == 0) continue
+
+            if (grid.children[0].classList.contains('element')) return ElementObjectMatch(grid.children[0])
+            
+            let lineObj = lineObjectMatch(grid.children[0])
+            if (this.orientation == lineObj.orientation) {
+                if (this.x == lineObj.x) {
+                    for (let i = this.y; true; (this.y > lineObj.y)? i--: i++) {
+                        const grid = locateGrid(this.x, i);
+                        if (grid == undefined) break
+                        if (grid.children[0].classList.contains('element')) return ElementObjectMatch(grid.children[0])
+                    }
+                } else {
+                    for (let i = this.x; true;  (this.x > lineObj.x)? i--: i++) {
+                        const grid = locateGrid(i, this.y);
+                        if (grid == undefined) break
+                        if (grid.children[0].classList.contains('element')) return ElementObjectMatch(grid.children[0]) 
+                    }
+                }
+            }
         }
     }
 }

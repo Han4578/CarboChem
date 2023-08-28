@@ -70,7 +70,7 @@ body {
     background-color: black;
 }
 
-.v.clickable, .h.clickable, .multi.clickable > .h, .multi.clickable > .v {
+.multi.clickable > div {
     background-color: blue;
 }
 
@@ -95,7 +95,7 @@ body {
 }
 
 .action-bar {
-    width: 10vw;
+    width: 150px;
     height: 100vh;
     position: absolute;
     right: 0;

@@ -88,9 +88,7 @@ export function refreshClickableLines() {
 export function removeClickableLines() {
     let clickableLines = lineArray.filter(l => {return l.element.classList.contains('clickable')})
     for (const line of clickableLines) {
-        line.element.parentElement.removeChild(line.element)
-        let index = lineArray.indexOf(line)
-        lineArray.splice(index, 1)
+        line.delete()
     }
     for (const element of elementArray) {
         if (selectedLineBonds > selectedElementBonds) break
@@ -156,19 +154,20 @@ export function refreshAllLines(refreshClickable) {
     if (refreshClickable) refreshClickableLines()
 }
 
-export function checkAllForBlockage() {
+export function checkAllForBlockage(newObj = undefined) {
     let hasChanged = false
-    do {
+    let originalLineBond = selectedLineBonds
+    if (selectedLineBonds !== 1) changeLineSelection(1)
+    do {                    //check if 2 lines occupy the same empty grid
         hasChanged = false
         let emptyGrids = []
 
         for (const lineObj of lineArray) {
             let sideGrids = lineObj.scan().filter(g => {return g.children.length == 0})
-
             if (sideGrids.length > 0) emptyGrids.push(sideGrids[0])
         }
 
-        for (const grid of emptyGrids) {    
+        for (const grid of emptyGrids) {
             let x = parseInt(grid.dataset.x)
             let y = parseInt(grid.dataset.y)
             let upperGrid = locateGrid(x, y - 1)
@@ -185,7 +184,7 @@ export function checkAllForBlockage() {
             elementToPush = [ElementObjectMatch(locateGrid(x, y + 2).children[0]), 'down']
             
             else if (neighbourgrids.includes(upperGrid)) 
-            elementToPush = [ElementObjectMatch(locateGrid(x, y - 2).children[0]), 'up']
+            elementToPush = [ElementObjectMatch(locateGrid(x + 2, y).children[0]) ?? ElementObjectMatch(locateGrid(x - 2, y).children[0]), 'down']
 
             else elementToPush = [ElementObjectMatch(locateGrid(x + 2, y).children[0]), 'right']
 
@@ -195,13 +194,100 @@ export function checkAllForBlockage() {
                 newLine(direction, 2)
             } 
             move(direction, [elemObj], 2)
+            if (newObj !== undefined) {
+                if (newObj.left !== undefined || newObj.right !== undefined) {
+                    newObj.x = (newObj.left !== undefined)? newObj.left.x + 2: newObj.right.x - 2
+                } else newObj.y = (newObj.up !== undefined)? newObj.up.y + 2: newObj.down.y - 2
+            }
             elemObj.backTrace(direction, elemObj)
         
             refreshAllLines(false)
             hasChanged = true
             break
         }
+        if (hasChanged) continue
+
+        let intersectingLines = [] //check if perpendicular lines block each other
+    
+        for (const line of lineArray) {
+            let sideGrids = line.scan().filter(l => {return l.children.length > 0})
+            if (sideGrids.length !== 2) continue
+
+            
+            for (const grid of sideGrids) {
+                if (grid.children[0].classList.contains('element')) continue
+                
+                let lineObj = lineObjectMatch(grid.children[0])
+                if (line.orientation !== lineObj.orientation) intersectingLines.push([line, lineObj])
+            }
+        }
+
+        for (const array of intersectingLines) {
+            array.sort((a, b) => {return a.x - b.x})
+            array.sort((a, b) => {return a.y - b.y})
+
+            let smallerLine = array[0]
+            let biggerLine = array[1]
+
+            let connectedElementObj = biggerLine.trace()
+
+            if (biggerLine.x == smallerLine.x) {
+                move('down', [connectedElementObj], 2)
+                connectedElementObj.backTrace('down', connectedElementObj)
+            } else {
+                move('right', [connectedElementObj], 2)
+                connectedElementObj.backTrace('right', connectedElementObj)
+            }
+
+            refreshAllLines()
+            hasChanged = true
+        }
+
+        if (hasChanged) continue
+
+        let clickableElements = elementArray.filter(e => {return e.bonds - (e.leftBond + e.rightBond + e.upperBond + e.downBond) !== 0})
+        
+        for (const element of clickableElements) { // check if elements are blocking clickable lines
+            if (element.left == undefined) {
+                let leftGrid = locateGrid(element.x - 2, element.y)
+    
+                if (leftGrid.children.length > 0 && leftGrid.children[0].classList.contains('element')) {
+                    move('right', [element], 2)
+                    element.backTrace('right', element)
+                    hasChanged = true
+                    refreshAllLines()
+                }
+            } else if (element.right == undefined) {
+                let rightGrid = locateGrid(element.x + 2, element.y)
+    
+                if (rightGrid.children.length > 0 && rightGrid.children[0].classList.contains('element')) {
+                    move('right', [rightGrid], 2)
+                    rightGrid.backTrace('right', rightGrid)
+                    hasChanged = true
+                    refreshAllLines()
+                }
+            } else if (element.up == undefined) {
+                let upperGrid = locateGrid(element.x, element.y - 2)
+    
+                if (upperGrid.children.length > 0 && upperGrid.children[0].classList.contains('element')) {
+                    move('down', [element], 2)
+                    element.backTrace('down', element)
+                    hasChanged = true
+                    refreshAllLines()
+                }
+            } else if (element.down == undefined) {
+                let lowerGrid = locateGrid(element.x, element.y + 2)
+    
+                if (lowerGrid.children.length > 0 && lowerGrid.children[0].classList.contains('element')) {
+                    move('down', [lowerGrid], 2)
+                    lowerGrid.backTrace('down', lowerGrid)
+                    hasChanged = true
+                    refreshAllLines()
+                }
+            } 
+        }
     } while (hasChanged)
+    if (originalLineBond !== 1) changeLineSelection(originalLineBond)
     refreshClickableLines()
 }
 
@@ -351,6 +437,10 @@ function changeDelete() {
 export function refreshDeletion() {
     for (const element of elementArray) {
         element.checkForDeletion()
+    }
+    let clickableLines = lineArray.filter(l => {return l.scan().filter(g => {return g.children.length == 0}).length > 0})
+    for (const line of clickableLines) {
+        line.delete()
     }
 }
 

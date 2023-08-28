@@ -86,25 +86,25 @@ export class Element {
         this.refreshLines(true)
     }
     
-    checkForExpansion(direction) {
-        if (direction.name !== 'C') return
+    checkForExpansion(obj, direction) {
+        if (obj.bonds == 1) return
 
         let refreshNeeded = false
-        
-        if (direction == this.up || direction == this.down) {
+        if (direction == 'up' || direction == 'down') {
             if (this.right !== undefined && this.right.name == 'C' && !this.extendedRight) {
-
-                let ElementsToMove = [this.right, ...this.right.trace(this)]
                 
+                let ElementsToMove = [this.right, ...this.right.trace(this)].filter(e => {return e.x >= this.x})
+
                 move('right', ElementsToMove, 2)
                 refreshNeeded = true
                 this.extendedRight = true
             }
-
+            
             if (this.left !== undefined && this.left.name == 'C' && !this.extendedLeft) {
+                
+                let ElementsToMove = [this, ...this.trace(this.left)].filter(e => {return e.x >= this.x})
 
-                let ElementsToMove = [this, ...this.trace(this.left)]
-
+                obj.x += 2
                 move('right', ElementsToMove, 2)
                 refreshNeeded = true
                 this.extendedLeft = true
@@ -113,7 +113,7 @@ export class Element {
         } else {
             if (this.down !== undefined && this.down.name == 'C' && !this.extendedDown) {
 
-                let ElementsToMove = [this.down, ...this.down.trace(this)]
+                let ElementsToMove = [this.down, ...this.down.trace(this)].filter(e => {return e.y >= this.y})
                 
                 move('down', ElementsToMove, 2)
                 refreshNeeded = true
@@ -122,8 +122,9 @@ export class Element {
 
             if (this.up !== undefined && this.up.name == 'C' && !this.extendedUp) {
 
-                let ElementsToMove = [this, ...this.trace(this.up)]
+                let ElementsToMove = [this, ...this.trace(this.up)].filter(e => {return e.y >= this.y})
 
+                obj.y += 2
                 move('down', ElementsToMove, 2)
                 refreshNeeded = true
                 this.extendedUp = true
@@ -176,10 +177,22 @@ export class Element {
         }
 
         for (const leftOver of leftOvers) {
-            if (leftOver.left == thisObject) leftOver.left = undefined
-            else if (leftOver.right == thisObject) leftOver.right = undefined
-            else if (leftOver.up == thisObject) leftOver.up = undefined
-            else if (leftOver.down == thisObject) leftOver.down = undefined
+            if (leftOver.left == thisObject) {
+                leftOver.left = undefined
+                leftOver.leftBond = 0
+            }
+            else if (leftOver.right == thisObject) {
+                leftOver.right = undefined
+                leftOver.rightBond = 0
+            }
+            else if (leftOver.up == thisObject) {
+                leftOver.up = undefined
+                leftOver.upperBond = 0
+            }
+            else if (leftOver.down == thisObject) {
+                leftOver.down = undefined
+                leftOver.downBond = 0
+            }
         }
 
         refreshAllLines(false)
