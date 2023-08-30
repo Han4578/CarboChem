@@ -236,7 +236,17 @@ div.selected {
     border-radius: 20px;
     padding: 1vw;
     text-align: center;
-    background-color: rgba(150, 149, 149, 0.6);
+    background-color: rgb(175, 175, 175);
     z-index: 5;
-    
+    font-size: 20px;
+}
+
+.darken {
+    background-color: rgb(20, 20, 20, 0.5);
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    z-index: 4;
+    display: none;
 }
