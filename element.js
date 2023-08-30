@@ -1,5 +1,5 @@
 import { Line } from "./line.js"
-import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch, lineObjectMatch, refreshDeletion, selectedLineBonds} from "./main.js"
+import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch, lineObjectMatch, refreshDeletion, selectedLineBonds, trimEdges} from "./main.js"
 
 export class Element {
     constructor(name, location, bonds) {
@@ -87,13 +87,13 @@ export class Element {
     }
     
     checkForExpansion(obj, direction) {
-        if (obj.bonds == 1) return
+        if (obj.bonds == selectedLineBonds) return
 
         let refreshNeeded = false
         if (direction == 'up' || direction == 'down') {
             if (this.right !== undefined && this.right.name == 'C' && !this.extendedRight) {
                 
-                let ElementsToMove = [this.right, ...this.right.trace(this)].filter(e => {return e.x >= this.x})
+                let ElementsToMove = [this.right, ...this.right.trace([this])].filter(e => {return e.x >= this.x})
 
                 move('right', ElementsToMove, 2)
                 refreshNeeded = true
@@ -102,7 +102,7 @@ export class Element {
             
             if (this.left !== undefined && this.left.name == 'C' && !this.extendedLeft) {
                 
-                let ElementsToMove = [this, ...this.trace(this.left)].filter(e => {return e.x >= this.x})
+                let ElementsToMove = [this, ...this.trace([this.left])].filter(e => {return e.x >= this.x})
 
                 obj.x += 2
                 move('right', ElementsToMove, 2)
@@ -113,7 +113,7 @@ export class Element {
         } else {
             if (this.down !== undefined && this.down.name == 'C' && !this.extendedDown) {
 
-                let ElementsToMove = [this.down, ...this.down.trace(this)].filter(e => {return e.y >= this.y})
+                let ElementsToMove = [this.down, ...this.down.trace([this])].filter(e => {return e.y >= this.y})
                 
                 move('down', ElementsToMove, 2)
                 refreshNeeded = true
@@ -122,7 +122,7 @@ export class Element {
 
             if (this.up !== undefined && this.up.name == 'C' && !this.extendedUp) {
 
-                let ElementsToMove = [this, ...this.trace(this.up)].filter(e => {return e.y >= this.y})
+                let ElementsToMove = [this, ...this.trace([this.up])].filter(e => {return e.y >= this.y})
 
                 obj.y += 2
                 move('down', ElementsToMove, 2)
@@ -143,7 +143,7 @@ export class Element {
         let noCarbon = (carbons.length == 1)? true: false;
         
         if (this.name == 'C' && noCarbon) deletable = false
-        else if (this.name == 'H') deletable = true
+        else if (this.bonds == 1) deletable = true
         else {
             let neighbourElements = [this.up, this.down, this.left, this.right].filter(e => {return e !== undefined})
 
@@ -166,8 +166,8 @@ export class Element {
 
     delete() {
         let thisObject = ElementObjectMatch(this)
-        let targets = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && e.name == 'H'})
-        let leftOvers = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && e.name !== 'H'})
+        let targets = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && e.bonds == 1})
+        let leftOvers = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && e.bonds > 1})
         targets.push(thisObject)
 
         for (const obj of targets) {
@@ -180,31 +180,36 @@ export class Element {
             if (leftOver.left == thisObject) {
                 leftOver.left = undefined
                 leftOver.leftBond = 0
+                leftOver.extendedLeft = false
             }
             else if (leftOver.right == thisObject) {
                 leftOver.right = undefined
                 leftOver.rightBond = 0
+                leftOver.extendedRight = false
             }
             else if (leftOver.up == thisObject) {
                 leftOver.up = undefined
                 leftOver.upperBond = 0
+                leftOver.extendedUp = false
             }
             else if (leftOver.down == thisObject) {
                 leftOver.down = undefined
                 leftOver.downBond = 0
+                leftOver.extendedDown = false
             }
         }
 
         refreshAllLines(false)
         refreshDeletion()
+        trimEdges()
     }
 
-    trace(exception) {
-        let elementsToTrace = [this.left, this.right, this.up, this.down].filter(e => {return e !== undefined && e !== exception})
+    trace(exceptionArray) {
+        let elementsToTrace = [this.left, this.right, this.up, this.down].filter(e => {return e !== undefined && !exceptionArray.includes(e)})
         let finalTraced = elementsToTrace
 
         for (const element of elementsToTrace) {
-            let tracedElements = element.trace(this)
+            let tracedElements = element.trace([this])
             finalTraced = finalTraced.concat(tracedElements)
         }
 

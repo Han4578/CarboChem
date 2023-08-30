@@ -85,6 +85,14 @@ export function refreshClickableLines() {
     }
 }
 
+function refreshOuterLines() {
+    removeClickableLines()
+    
+    for (const element of elementArray) {
+        element.refreshLines()
+    }
+}
+
 export function removeClickableLines() {
     let clickableLines = lineArray.filter(l => {return l.element.classList.contains('clickable')})
     for (const line of clickableLines) {
@@ -96,7 +104,7 @@ export function removeClickableLines() {
     }
 }
 
-export function refreshAllLines(refreshClickable) {
+export function refreshAllLines(refreshClickable = true) {
     for (const line of lineArray) {
         line.element.parentElement.removeChild(line.element)
     }
@@ -261,8 +269,10 @@ export function checkAllForBlockage(newObj = undefined) {
                 let rightGrid = locateGrid(element.x + 2, element.y)
     
                 if (rightGrid.children.length > 0 && rightGrid.children[0].classList.contains('element')) {
-                    move('right', [rightGrid], 2)
-                    rightGrid.backTrace('right', rightGrid)
+                    let rightObj = ElementObjectMatch(rightGrid.children[0])
+
+                    move('right', [rightObj], 2)
+                    rightObj.backTrace('right', rightObj)
                     hasChanged = true
                     refreshAllLines()
                 }
@@ -279,8 +289,10 @@ export function checkAllForBlockage(newObj = undefined) {
                 let lowerGrid = locateGrid(element.x, element.y + 2)
     
                 if (lowerGrid.children.length > 0 && lowerGrid.children[0].classList.contains('element')) {
-                    move('down', [lowerGrid], 2)
-                    lowerGrid.backTrace('down', lowerGrid)
+                    let lowerObj = ElementObjectMatch(lowerGrid.children[0])
+
+                    move('down', [lowerObj], 2)
+                    lowerObj.backTrace('down', lowerObj)
                     hasChanged = true
                     refreshAllLines()
                 }
@@ -430,6 +442,9 @@ function changeDelete() {
             elemObj.element.classList.remove('deletable')
             elemObj.element.removeEventListener('click', elemObj.delete)
         }
+        for (const element of elementArray) {
+            element.refreshLines()
+        }
         refreshClickableLines()
     }
 }
@@ -444,16 +459,127 @@ export function refreshDeletion() {
     }
 }
 
+export function retractElements() {
+    let singleBondElements = elementArray.filter(e => {return e.bonds == 1})
+    let refreshNeeded = false
+
+    for (const element of singleBondElements) {
+        if (element.left !== undefined) {
+            if (element.x !== element.left.x + 2) {
+                element.x = element.left.x + 2
+                let grid = locateGrid(element.x, element.y)
+
+                grid.appendChild(element.element)
+                refreshNeeded = true
+            }
+        } else if (element.right !== undefined) {
+            if (element.x !== element.right.x - 2) {
+                element.x = element.right.x - 2
+                let grid = locateGrid(element.x, element.y)
+
+                grid.appendChild(element.element)
+                refreshNeeded = true
+            }
+        } else if (element.up !== undefined) {
+            if (element.y !== element.up.y + 2) {
+                element.y = element.up.y + 2
+                let grid = locateGrid(element.x, element.y)
+
+                grid.appendChild(element.element)
+                refreshNeeded = true
+            }
+        } else if (element.down !== undefined) {
+            if (element.y !== element.down.y - 2) {
+                element.y = element.down.y - 2
+                let grid = locateGrid(element.x, element.y)
+
+                grid.appendChild(element.element)
+                refreshNeeded = true
+            }
+        } 
+    }
+
+    if (refreshNeeded) refreshAllLines()
+}
+
+export function trimEdges() {
+    if (gridArray.length <= 25) return
+    let thirdColumn = RowArray.map(r => {return r.children[2]})
+    let thirdLastColumn = RowArray.map(r => {return r.children[r.children.length - 3]})
+    let thirdRow = [...RowArray[2].children]
+    let thirdLastRow = [...RowArray[RowArray.length - 3].children]
+
+    while (thirdLastColumn.filter(g => {return g.children.length == 1}).length == 0) {
+        for (const row of RowArray) {
+            let grid = row.children[row.children.length - 1]
+            row.removeChild(grid)
+
+            let index = gridArray.indexOf(grid)
+            gridArray.splice(index, 1)
+        }
+        thirdLastColumn = RowArray.map(r => {return r.children[r.children.length - 3]})
+        columnNum--
+    }
+
+    while (thirdColumn.filter(g => {return g.children.length == 1}).length == 0) {
+        move('left', lineArray.concat(elementArray), 1)
+
+        for (const row of RowArray) {
+            let grid = row.children[row.children.length - 1]
+            row.removeChild(grid)
+
+            let index = gridArray.indexOf(grid)
+            gridArray.splice(index, 1)
+        }
+        thirdColumn = RowArray.map(r => {return r.children[2]})
+        columnNum--
+    }
+
+    while (thirdLastRow.filter(g => {return g.children.length == 1}).length == 0) {
+        let row = RowArray[RowArray.length - 1]
+
+        for (const grid of [...row.children]) {           
+            let index = gridArray.indexOf(grid)
+            gridArray.splice(index, 1)
+        }
+        RowArray.pop()
+        container.removeChild(row)
+        thirdLastRow = [...RowArray[RowArray.length - 3].children]
+        rowNum--
+    }
+
+    while (thirdRow.filter(g => {return g.children.length == 1}).length == 0) {
+        move('up', lineArray.concat(elementArray), 1)
+        let row = RowArray[RowArray.length - 1]
+
+        for (const grid of [...row.children]) {           
+            let index = gridArray.indexOf(grid)
+            gridArray.splice(index, 1)
+        }
+        RowArray.pop()
+        container.removeChild(row)
+        thirdRow = [...RowArray[2].children]
+        rowNum--
+    }
+    checkScreenSize()
+}
+
 function autoFillHydrogen() {
     let originalElement = selectedElement
     let originalElementBond = selectedElementBonds
     let originalLineBond = selectedLineBonds
+    let hasChanged = true
     changeElementSelection('H', 1)
     changeLineSelection(1)
 
-    for (const line of lineArray) {
-        if (!line.element.classList.contains('clickable')) continue
-        line.addElement()
+    while (hasChanged) {
+        hasChanged = false
+        let clickableLines = lineArray.filter(l => {return l.scan().filter(g => {return g.children.length == 0}).length == 1})
+        if (clickableLines.length > 0) {
+            clickableLines[0].addElement()
+            refreshOuterLines()
+            hasChanged = true
+        }
     }
     changeElementSelection(originalElement, originalElementBond)
     changeLineSelection(originalLineBond)
@@ -516,6 +642,25 @@ window.addEventListener('keydown', e => {
         case 'h':
             changeElementSelection('H', 1)
             changeLineSelection(1)
+            break;
+        case 'I':
+        case 'i':
+            changeElementSelection('I', 1)
+            changeLineSelection(1)
+            break;
+        case 'L':
+        case 'l':
+            changeElementSelection('Cl', 1)
+            changeLineSelection(1)
+            break;
+        case 'B':
+        case 'b':
+            changeElementSelection('Br', 1)
+            changeLineSelection(1)
+            break;
+        case 'O':
+        case 'o':
+            changeElementSelection('O', 2)
             break;
         case 'R':
         case 'r':

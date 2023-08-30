@@ -1,4 +1,4 @@
-import { selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage, selectedLineBonds, removeClickableLines, lineArray} from "./main.js"
+import { selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage, selectedLineBonds, removeClickableLines, lineArray, retractElements, refreshAllLines} from "./main.js"
 import { Element } from "./element.js"
 
 export class Line {
@@ -54,15 +54,15 @@ export class Line {
 
         lineObj.element.classList.remove('clickable')
         lineObj.element.removeEventListener('click', lineObj.addElement)
-        if (selectedElement == 'H') {
+        if (selectedElement.bonds == 1) {
             newObj.displayElement()
         } else {
             removeClickableLines()
             checkAllForBlockage(newObj)
             newObj.displayElement()
             checkAllForBlockage()
-            newObj.checkForBlockage()
-            checkAllForBlockage()
+            retractElements()
+            refreshAllLines()
         }
     }
 
