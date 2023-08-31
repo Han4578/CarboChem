@@ -31,8 +31,8 @@ export class Element {
                 let lineObj
 
                 if (parseInt(grid.dataset.x) !== this.x) {
-                    lineObj = new Line('h', grid, selectedLineBonds)
-                } else lineObj = new Line('v', grid, selectedLineBonds)
+                    lineObj = new Line('h', grid, selectedLineBonds, this)
+                } else lineObj = new Line('v', grid, selectedLineBonds, this)
 
                 lineObj.displayLine()
                 lineArray.push(lineObj)

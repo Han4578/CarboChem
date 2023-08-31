@@ -2,12 +2,13 @@ import { selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, Ele
 import { Element } from "./element.js"
 
 export class Line {
-    constructor(orientation, location, bonds) {
+    constructor(orientation, location, bonds, parent) {
         this.orientation = orientation
         this.x = parseInt(location.dataset.x)
         this.y = parseInt(location.dataset.y)
         this.element = undefined
         this.bonds = bonds
+        this.parent = parent
     }
 
     addElement() {
@@ -57,6 +58,7 @@ export class Line {
         if (selectedElement.bonds == 1) {
             newObj.displayElement()
         } else {
+            // debugger
             removeClickableLines()
             checkAllForBlockage(newObj)
             newObj.displayElement()
@@ -115,31 +117,5 @@ export class Line {
         this.element.parentElement.removeChild(this.element)
         let index = lineArray.indexOf(this)
         lineArray.splice(index, 1)
-    }
-
-    trace() {
-        let sideGrids = this.scan()
-        for (const grid of sideGrids) {
-            if (grid.children.length == 0) continue
-
-            if (grid.children[0].classList.contains('element')) return ElementObjectMatch(grid.children[0])
-            
-            let lineObj = lineObjectMatch(grid.children[0])
-            if (this.orientation == lineObj.orientation) {
-                if (this.x == lineObj.x) {
-                    for (let i = this.y; true; (this.y > lineObj.y)? i--: i++) {
-                        const grid = locateGrid(this.x, i);
-                        if (grid == undefined) break
-                        if (grid.children[0].classList.contains('element')) return ElementObjectMatch(grid.children[0])
-                    }
-                } else {
-                    for (let i = this.x; true;  (this.x > lineObj.x)? i--: i++) {
-                        const grid = locateGrid(i, this.y);
-                        if (grid == undefined) break
-                        if (grid.children[0].classList.contains('element')) return ElementObjectMatch(grid.children[0]) 
-                    }
-                }
-            }
-        }
     }
 }

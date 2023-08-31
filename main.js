@@ -141,11 +141,11 @@ export function refreshAllLines(refreshClickable = true) {
         
         if (biggerObj.x == smallerObj.x) {
             for (let i = smallerObj.y + 1; i < biggerObj.y; i++) {
-                lineArray.push(new Line('v', locateGrid(smallerObj.x, i), biggerObj.upperBond) )
+                lineArray.push(new Line('v', locateGrid(smallerObj.x, i), biggerObj.upperBond, smallerObj) )
             }
         } else {
             for (let i = smallerObj.x + 1; i < biggerObj.x; i++) {
-                lineArray.push(new Line('h', locateGrid(i, smallerObj.y), biggerObj.leftBond) )
+                lineArray.push(new Line('h', locateGrid(i, smallerObj.y), biggerObj.leftBond, smallerObj) )
             }            
         }
 
@@ -233,11 +233,10 @@ export function checkAllForBlockage(newObj = undefined) {
         for (const array of intersectingLines) {
             array.sort((a, b) => {return a.x - b.x})
             array.sort((a, b) => {return a.y - b.y})
-
             let smallerLine = array[0]
             let biggerLine = array[1]
 
-            let connectedElementObj = biggerLine.trace()
+            let connectedElementObj = biggerLine.parent
 
             if (biggerLine.x == smallerLine.x) {
                 move('down', [connectedElementObj], 2)
@@ -249,12 +248,41 @@ export function checkAllForBlockage(newObj = undefined) {
 
             refreshAllLines()
             hasChanged = true
+            break
+        }
+
+        if (hasChanged) continue
+
+        let doubleChildrenGrids = gridArray.filter(g => {return g.children.length == 2})
+
+        for (const grid of doubleChildrenGrids) { //check if element overlaps with line
+            let line = [...grid.children].filter(c => {return c.classList.contains('multi')})[0]
+            let element = [...grid.children].filter(c => {return c.classList.contains('element')})
+
+            if (element == []) continue
+            debugger
+            console.log(grid, line);
+            let lineObj = lineObjectMatch(line)
+            let connectedElementObj = lineObj.parent
+
+            if (lineObj.orientation == 'v') {
+                move('right', [connectedElementObj], 2)
+                connectedElementObj.backTrace('right', connectedElementObj)
+
+            } else {
+                move('down', [connectedElementObj], 2)
+                connectedElementObj.backTrace('down', connectedElementObj)
+
+            }
+            hasChanged = true
+            refreshAllLines()
+            break
         }
 
         if (hasChanged) continue
 
         let clickableElements = elementArray.filter(e => {return e.bonds - (e.leftBond + e.rightBond + e.upperBond + e.downBond) !== 0})
-        
+
         for (const element of clickableElements) { // check if elements are blocking clickable lines
             if (element.left == undefined) {
                 let leftGrid = locateGrid(element.x - 2, element.y)
@@ -265,7 +293,9 @@ export function checkAllForBlockage(newObj = undefined) {
                     hasChanged = true
                     refreshAllLines()
                 }
-            } else if (element.right == undefined) {
+            }
+            
+            if (element.right == undefined) {
                 let rightGrid = locateGrid(element.x + 2, element.y)
     
                 if (rightGrid.children.length > 0 && rightGrid.children[0].classList.contains('element')) {
@@ -276,7 +306,9 @@ export function checkAllForBlockage(newObj = undefined) {
                     hasChanged = true
                     refreshAllLines()
                 }
-            } else if (element.up == undefined) {
+            }
+            
+            if (element.up == undefined) {
                 let upperGrid = locateGrid(element.x, element.y - 2)
     
                 if (upperGrid.children.length > 0 && upperGrid.children[0].classList.contains('element')) {
@@ -285,12 +317,13 @@ export function checkAllForBlockage(newObj = undefined) {
                     hasChanged = true
                     refreshAllLines()
                 }
-            } else if (element.down == undefined) {
+            }
+            
+            if (element.down == undefined) {
                 let lowerGrid = locateGrid(element.x, element.y + 2)
     
                 if (lowerGrid.children.length > 0 && lowerGrid.children[0].classList.contains('element')) {
                     let lowerObj = ElementObjectMatch(lowerGrid.children[0])
-
                     move('down', [lowerObj], 2)
                     lowerObj.backTrace('down', lowerObj)
                     hasChanged = true
