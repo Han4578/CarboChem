@@ -4,6 +4,7 @@
 
 * {
     box-sizing: border-box;
+    user-select: none;
 }
 
 body {
@@ -65,7 +66,7 @@ img {
     width: calc(var(--width) * 1px);
     aspect-ratio: 1;
     /* border: 1px solid black; */
-    font-size: 32px;
+    font-size: calc(var(--width) * 0.64 * 1px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -146,7 +147,7 @@ img {
     align-items: center;
 }
 
-.action-bar > *:hover, .element-selection:hover, .line-selection:hover {
+.action-bar > *:hover, .element-selection:hover, .line-selection:hover, .plus:hover, .minus:hover {
     filter: brightness(0.8);
 }
 
@@ -234,19 +235,72 @@ div.selected {
     left: 25vw;
     top: 20vh;
     border-radius: 20px;
-    padding: 1vw;
+    padding: 2vw 5vw;
     text-align: center;
-    background-color: rgb(175, 175, 175);
+    background-color: rgb(241, 241, 241);
     z-index: 5;
     font-size: 20px;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    gap: 1vh;
+}
+
+.tutorial {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+}
+.tutorial::-webkit-scrollbar { 
+    display: none;  /* Safari and Chrome */
 }
 
 .darken {
+    filter: opacity(0);
     background-color: rgb(20, 20, 20, 0.5);
     width: 100vw;
     height: 100vh;
     position: absolute;
     top: 0;
     z-index: 4;
-    display: none;
+    transition: all 0.5s;
+    pointer-events: none;
+}
+
+.darken.show {
+    filter: opacity(1);
+    pointer-events: all;
+}
+
+.zoom-menu {
+    position: absolute;
+    left: 10px;
+    top: 12vh;
+    display: flex;
+    gap: 1px;
+}
+
+.minus, .plus {
+    width:60px;
+    aspect-ratio: 3 / 2;
+    background-color: #5b5b5b;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #dadada;
+    border: inset 2px white;
+    box-shadow: 0 0 10px #616161;
+    font-weight: 900;
+    font-size: 36px;
+}
+
+.minus {
+    border-radius: 10px 0 0 10px;
+}
+
+.plus {
+    border-radius: 0 10px 10px 0;
+}
+
+.greyed {
+    color: gray;
 }

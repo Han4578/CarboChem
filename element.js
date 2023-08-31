@@ -139,20 +139,30 @@ export class Element {
 
     checkForDeletion() {
         let deletable = false
-        let carbons = elementArray.filter(e => {return e.name == 'C'})
-        let noCarbon = (carbons.length == 1)? true: false;
+        let neighbourElements = [this.up, this.down, this.left, this.right].filter(e => {return e !== undefined})
         
-        if (this.name == 'C' && noCarbon) deletable = false
-        else if (this.bonds == 1) deletable = true
-        else {
-            let neighbourElements = [this.up, this.down, this.left, this.right].filter(e => {return e !== undefined})
+        switch (this.bonds) {
+            case 1:
+                deletable = true
+                break;
+            case 2:
+                let greaterBondElements = neighbourElements.filter(e => {return e !== undefined && e.bonds >= this.bonds})
+                if (greaterBondElements.length == 1) deletable = true
+                break;
+            case 4:
+                let carbons = elementArray.filter(e => {return e.name == 'C'})
+                let noCarbon = (carbons.length == 1)? true: false;
+                let nonSingleBondElements = neighbourElements.filter(e => {return e.bonds > 1})
 
-            if (neighbourElements.length == 1) deletable = true
-            else {
-                let neighbourCarbons = neighbourElements.filter(e => {return e.name == 'C'})
-
-                if (neighbourCarbons.length == 1) deletable = true
-            }
+                if (noCarbon) deletable = false
+                else {
+                    let neighbourCarbons = neighbourElements.filter(e => {return e.name == 'C'})
+                    if (neighbourCarbons.length == 1 || nonSingleBondElements.length == 1) deletable = true
+                }
+                break;
+        
+            default:
+                break;
         }
 
         if (deletable) {
@@ -166,8 +176,8 @@ export class Element {
 
     delete() {
         let thisObject = ElementObjectMatch(this)
-        let targets = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && e.bonds == 1})
-        let leftOvers = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && e.bonds > 1})
+        let targets = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && e.bonds < thisObject.bonds})
+        let leftOvers = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && e.bonds >= thisObject.bonds})
         targets.push(thisObject)
 
         for (const obj of targets) {
@@ -234,7 +244,7 @@ export class Element {
     checkForReduction(deletedObj) {
         if (!this.extendedDown && !this.extendedUp && !this.extendedLeft && !this.extendedRight) return
 
-        if ((this.up == deletedObj && (this.down == undefined || this.down.bonds == 1)) || (this.down == deletedObj && (this.up == undefined || this.up.bonds == 1))) {
+        if ((this.up == deletedObj && (this.down == undefined || (this.down !== undefined && this.down.bonds == 1))) || (this.down == deletedObj && (this.up == undefined || (this.up !== undefined && this.up.bonds == 1)))) {
             if (this.extendedRight) {
                 let ElementsToMove = [this.right, ...this.right.trace([this])].filter(e => {return e.x >= this.x})
                 let movable = true
@@ -296,7 +306,7 @@ export class Element {
             }
         }
 
-        if ((this.left == deletedObj && (this.right == undefined || this.right.bonds == 1)) || (this.right == deletedObj || (this.left == undefined && this.left.bonds == 1))) {
+        if ((this.left == deletedObj && (this.right == undefined || (this.right !== undefined && this.right.bonds == 1))) || (this.right == deletedObj && (this.left == undefined || (this.left !== undefined && this.left.bonds == 1)))) {
             if (this.extendedDown) {
                 let ElementsToMove = [this.down, ...this.down.trace([this])].filter(e => {return e.y >= this.y})
                 let movable = true

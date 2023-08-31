@@ -10,6 +10,11 @@ let elementMenu = document.querySelector('.element-menu')
 let elementSelection = document.querySelectorAll('.element-selection')
 let lineButton = document.querySelector('.line-button')
 let lineMenu = document.querySelector('.line-menu')
+let darken = document.querySelector('.darken')
+let question = document.querySelector('.question')
+let tutorial = document.querySelector('.tutorial')
+let plus = document.querySelector('.plus')
+let minus = document.querySelector('.minus')
 let lineSelection = document.querySelectorAll('.line-selection')
 let deleteMode = false
 let gridArray = []
@@ -260,8 +265,6 @@ export function checkAllForBlockage(newObj = undefined) {
             let element = [...grid.children].filter(c => {return c.classList.contains('element')})
 
             if (element == []) continue
-            debugger
-            console.log(grid, line);
             let lineObj = lineObjectMatch(line)
             let connectedElementObj = lineObj.parent
 
@@ -405,6 +408,7 @@ function checkScreenSize() {
 
     if (rowNum > window.innerHeight * 0.9 / gridSize) container.classList.add('start-up')
     else container.classList.remove('start-up')
+    event.preventDefault()
 }
 
 function changeElementSelection(element, bond) {
@@ -632,6 +636,17 @@ resetButton.addEventListener('click', reset)
 autoButton.addEventListener('click', autoFillHydrogen)
 window.addEventListener('resize', checkScreenSize)
 deleteButton.addEventListener('click', changeDelete)
+plus.addEventListener('click', enlarge)
+minus.addEventListener('click', reduce)
+question.addEventListener('click', () => {
+    darken.classList.toggle('show')
+})
+darken.addEventListener('click', () => {
+    darken.classList.remove('show')
+})
+tutorial.addEventListener('click', () => {
+    event.stopPropagation()
+})
 
 window.addEventListener('click', () => {
     elementMenu.classList.remove('show')
@@ -649,6 +664,38 @@ lineButton.addEventListener('click', () => {
     elementMenu.classList.remove('show')
     event.stopPropagation()
 })
+
+function enlarge() {
+    if (gridSize == 30) {
+        minus.addEventListener('click', reduce)
+    }
+    
+    gridSize += 10
+    document.documentElement.style.setProperty('--width', gridSize)
+
+    if (gridSize == 100) {
+        plus.removeEventListener('click', enlarge)
+        plus.classList.add('greyed')
+    } 
+    minus.classList.remove('greyed')
+    checkScreenSize()
+}
+
+function reduce() {
+    if (gridSize == 100) {
+        plus.addEventListener('click', enlarge)
+    }
+    
+    gridSize -= 10
+    document.documentElement.style.setProperty('--width', gridSize)
+
+    if (gridSize == 20) {
+        minus.removeEventListener('click', reduce)
+        minus.classList.add('greyed')
+    } 
+    plus.classList.remove('greyed')
+    checkScreenSize()
+}
 
 for (const element of elementSelection) {
     element.addEventListener('click', () => {
@@ -722,3 +769,5 @@ window.addEventListener('keydown', e => {
     }
 })
 reset()
+enlarge()
+reduce()
