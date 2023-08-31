@@ -1,5 +1,5 @@
 import { Line } from "./line.js"
-import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch, lineObjectMatch, refreshDeletion, selectedLineBonds, trimEdges} from "./main.js"
+import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch, lineObjectMatch, refreshDeletion, selectedLineBonds, trimEdges, checkAllForBlockage} from "./main.js"
 
 export class Element {
     constructor(name, location, bonds) {
@@ -177,6 +177,8 @@ export class Element {
         }
 
         for (const leftOver of leftOvers) {
+            leftOver.checkForReduction(thisObject)
+
             if (leftOver.left == thisObject) {
                 leftOver.left = undefined
                 leftOver.leftBond = 0
@@ -200,6 +202,7 @@ export class Element {
         }
 
         refreshAllLines(false)
+        checkAllForBlockage()
         refreshDeletion()
         trimEdges()
     }
@@ -226,5 +229,133 @@ export class Element {
                 element.backTrace(direction, this)
             }
         }
+    }
+
+    checkForReduction(deletedObj) {
+        if (!this.extendedDown && !this.extendedUp && !this.extendedLeft && !this.extendedRight) return
+
+        if ((this.up == deletedObj && (this.down == undefined || this.down.bonds == 1)) || (this.down == deletedObj && (this.up == undefined || this.up.bonds == 1))) {
+            if (this.extendedRight) {
+                let ElementsToMove = [this.right, ...this.right.trace([this])].filter(e => {return e.x >= this.x})
+                let movable = true
+
+                for (const element of ElementsToMove) {
+                    let grid = locateGrid(element.x - 2, element.y)
+                    let elemObj
+
+                    if (grid.children.length == 0) continue
+
+                    let child = grid.children[0]
+
+                    if (child.classList.contains('multi')) {
+                        let lineObj = lineObjectMatch(child)
+                        elemObj = lineObj.parent
+                    } else elemObj = ElementObjectMatch(child)
+
+                    if (!ElementsToMove.includes(elemObj) && elemObj !== this) {
+                        movable = false
+                        break
+                    }
+                }
+                
+                if (movable) {
+                    move('left', ElementsToMove, 2)
+                    this.extendedRight = false
+                }
+
+            }
+            if (this.extendedLeft) {
+                let ElementsToMove = [this, ...this.trace([this.left, deletedObj])].filter(e => {return e.x >= this.x})
+                let movable = true
+
+                for (const element of ElementsToMove) {
+                    if (element == this) continue
+
+                    let grid = locateGrid(element.x - 2, element.y)
+                    let elemObj
+
+                    if (grid.children.length == 0) continue
+
+                    let child = grid.children[0]
+
+                    if (child.classList.contains('multi')) {
+                        let lineObj = lineObjectMatch(child)
+                        elemObj = lineObj.parent
+                    } else elemObj = ElementObjectMatch(child)
+
+                    if (!ElementsToMove.includes(elemObj)) {
+                        movable = false
+                        break
+                    }
+                }
+                
+                if (movable) {
+                    move('left', ElementsToMove, 2)
+                    this.extendedLeft = false
+                }
+            }
+        }
+
+        if ((this.left == deletedObj && (this.right == undefined || this.right.bonds == 1)) || (this.right == deletedObj || (this.left == undefined && this.left.bonds == 1))) {
+            if (this.extendedDown) {
+                let ElementsToMove = [this.down, ...this.down.trace([this])].filter(e => {return e.y >= this.y})
+                let movable = true
+
+                for (const element of ElementsToMove) {
+                    let grid = locateGrid(element.x, element.y - 2)
+                    let elemObj
+
+                    if (grid.children.length == 0) continue
+
+                    let child = grid.children[0]
+
+                    if (child.classList.contains('multi')) {
+                        let lineObj = lineObjectMatch(child)
+                        elemObj = lineObj.parent
+                    } else elemObj = ElementObjectMatch(child)
+
+                    if (!ElementsToMove.includes(elemObj) && elemObj !== this) {
+                        movable = false
+                        break
+                    }
+                }
+
+                if (movable) {
+                    move('up', ElementsToMove, 2)
+                    this.extendedUp = false
+                }
+            }
+            if (this.extendedUp) {
+                let ElementsToMove = [this, ...this.trace([this.up, deletedObj])].filter(e => {return e.y >= this.y})
+                let movable = true
+
+                for (const element of ElementsToMove) {
+                    if (element == this) continue
+
+                    let grid = locateGrid(element.x, element.y - 2)
+                    let elemObj
+
+                    if (grid.children.length == 0) continue
+
+                    let child = grid.children[0]
+
+                    if (child.classList.contains('multi')) {
+                        let lineObj = lineObjectMatch(child)
+                        elemObj = lineObj.parent
+                    } else elemObj = ElementObjectMatch(child)
+
+                    if (!ElementsToMove.includes(elemObj)) {
+                        movable = false
+                        break
+                    }
+                }
+
+                if (movable) {
+                    move('up', ElementsToMove, 2)
+                    this.extendedDown = false
+                }
+            }
+        }
+
     }
 }
