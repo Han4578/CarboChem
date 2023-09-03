@@ -1,4 +1,4 @@
-import { selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage, selectedLineBonds, removeClickableLines, lineArray, retractElements, refreshAllLines} from "./main.js"
+import { selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage, selectedLineBonds, removeClickableLines, lineArray, retractElements, refreshAllLines, refreshName} from "./main.js"
 import { Element } from "./element.js"
 
 export class Line {
@@ -58,7 +58,6 @@ export class Line {
         if (selectedElement.bonds == 1) {
             newObj.displayElement()
         } else {
-            // debugger
             removeClickableLines()
             checkAllForBlockage(newObj)
             newObj.displayElement()
@@ -66,6 +65,7 @@ export class Line {
             retractElements()
             refreshAllLines()
         }
+        refreshName()
     }
 
     updatePosition() {

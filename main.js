@@ -1,5 +1,6 @@
 import { Element } from "./element.js"
 import { Line } from "./line.js"
+import { Name } from "./name.js"
 
 let container = document.querySelector('.container')
 let resetButton = document.querySelector('.reset')
@@ -15,10 +16,13 @@ let question = document.querySelector('.question')
 let tutorial = document.querySelector('.tutorial')
 let plus = document.querySelector('.plus')
 let minus = document.querySelector('.minus')
+let nameContainer = document.querySelector('.name')
 let lineSelection = document.querySelectorAll('.line-selection')
-let deleteMode = false
 let gridArray = []
 let RowArray = []
+export let elementDictionary = {}
+export let lineDictionary = {}
+export let deleteMode = false
 export let lineArray = []
 export let elementArray = []
 export let selectedElement = 'C'
@@ -40,6 +44,8 @@ function reset() {
     container.classList.remove('start-up')
     container.classList.remove('start-left')
     deleteMode = false
+    elementDictionary = {}
+    lineDictionary = {}
 
     for (let i = 0; i < 5; i++) {
         const row = addRow(container)
@@ -408,7 +414,6 @@ function checkScreenSize() {
 
     if (rowNum > window.innerHeight * 0.9 / gridSize) container.classList.add('start-up')
     else container.classList.remove('start-up')
-    event.preventDefault()
 }
 
 function changeElementSelection(element, bond) {
@@ -464,7 +469,7 @@ function changeLineSelection(bond) {
     refreshClickableLines()
 }
 
-function changeDelete() {
+export function changeDelete() {
     deleteButton.classList.toggle('selected')
     deleteMode = !deleteMode
     if (deleteMode) {
@@ -629,6 +634,40 @@ export function lineObjectMatch(element) {
 
 export function ElementObjectMatch(element) {
     return elementArray.filter(e => {return e.element == element})[0]    
+}
+
+export function refreshName() {
+    // for (const line of lineArray) {
+    //     if (line.element.classList.contains('clickable')) {
+    //         name.innerText = '-'
+    //         return
+    //     }
+    // }
+    let name
+    elementDictionary = {}
+    lineDictionary = {}
+
+    for (const element of elementArray) {
+        let name = element.name
+        elementDictionary[name] = (elementDictionary.hasOwnProperty(name))? elementDictionary[name] + 1: 1;
+    }
+
+    for (const line of lineArray) {
+        let bonds = line.bonds
+        lineDictionary[bonds] = (lineDictionary.hasOwnProperty(bonds))? lineDictionary[bonds] + 1: 1;
+    }
+
+    if (!elementDictionary.hasOwnProperty('O')) {
+        if (lineDictionary.hasOwnProperty(2) && lineDictionary.hasOwnProperty(3)) {
+
+        } else if (lineDictionary.hasOwnProperty(2)) {
+            name = Name.alkene()
+        } else if (lineDictionary.hasOwnProperty(3)) {
+            name = Name.alkyne()
+        } else name = Name.alkane()
+    }
+
+    nameContainer.innerText = name
 }
 
 

@@ -1,5 +1,5 @@
 import { Line } from "./line.js"
-import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch, lineObjectMatch, refreshDeletion, selectedLineBonds, trimEdges, checkAllForBlockage} from "./main.js"
+import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch, lineObjectMatch, refreshDeletion, selectedLineBonds, trimEdges, checkAllForBlockage, deleteMode, changeDelete} from "./main.js"
 
 export class Element {
     constructor(name, location, bonds) {
@@ -20,6 +20,7 @@ export class Element {
         this.rightBond = 0
         this.upperBond = 0
         this.downBond = 0
+        this.main = false
     }
 
     refreshLines(refreshClickable) {
@@ -155,10 +156,7 @@ export class Element {
                 let nonSingleBondElements = neighbourElements.filter(e => {return e.bonds > 1})
 
                 if (noCarbon) deletable = false
-                else {
-                    let neighbourCarbons = neighbourElements.filter(e => {return e.name == 'C'})
-                    if (neighbourCarbons.length == 1 || nonSingleBondElements.length == 1) deletable = true
-                }
+                else if (nonSingleBondElements.length == 1) deletable = true
                 break;
         
             default:
@@ -215,6 +213,10 @@ export class Element {
         checkAllForBlockage()
         refreshDeletion()
         trimEdges()
+
+        if (!deleteMode) {
+            changeDelete()
+        }
     }
 
     trace(exceptionArray) {
@@ -366,6 +368,49 @@ export class Element {
                 }
             }
         }
+    }
 
+    carbonTrace(exception) {
+        let elementsToTrace = [this.left, this.right, this.up, this.down].filter(e => {return e !== undefined && e !== exception && e.name == 'C'})
+        let finalTraced = elementsToTrace
+
+        if (elementsToTrace.length == 1) {
+            let element = elementsToTrace[0]
+            let tracedElementArrays = element.carbonTrace(this)
+
+           if (tracedElementArrays.length == 1) {
+                finalTraced = finalTraced.concat(...tracedElementArrays)
+            } else if (tracedElementArrays.length > 1) {
+                let branches = []
+
+                for (const array of tracedElementArrays) {
+                    let branch = [elementsToTrace[0], ...array]
+                    branches.push(branch)
+                }
+                return branches
+            }
+            
+            return [finalTraced]
+        } else if (elementsToTrace.length > 1) {
+            let branches = []
+
+            for (const element of elementsToTrace) {
+                let tracedElements = element.carbonTrace(this)
+
+                if (tracedElements.length == 1) {
+                    let branch = [element].concat(...tracedElements)
+                    branches.push(branch)
+
+                } else if (tracedElements.length > 1) {
+    
+                    for (const array of tracedElements) {
+                        let branch = [element, ...array]
+                        branches.push(branch)
+                    }
+                }
+            }
+            
+            return branches
+        } else return [finalTraced]
     }
 }
