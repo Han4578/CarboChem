@@ -59,6 +59,7 @@ function reset() {
     carbon.displayElement()
 
     refreshClickableLines()
+    refreshName()
 }
 
 function addGrid(row) {

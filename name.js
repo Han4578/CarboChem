@@ -9,7 +9,7 @@ export let Name = {
 
         for (const carbon of carbons) {
             let neighbourCarbons = [carbon.left, carbon.right, carbon.up, carbon.down].filter(c => {return c !== undefined && c.name == 'C'})
-            if (neighbourCarbons.length !== 1) continue
+            if (neighbourCarbons.length > 1) continue
 
             let branch = carbon.carbonTrace(carbon)
             if (branch.length > 1) {
