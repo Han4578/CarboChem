@@ -637,12 +637,12 @@ export function ElementObjectMatch(element) {
 }
 
 export function refreshName() {
-    // for (const line of lineArray) {
-    //     if (line.element.classList.contains('clickable')) {
-    //         name.innerText = '-'
-    //         return
-    //     }
-    // }
+    for (const line of lineArray) {
+        if (line.element.classList.contains('clickable')) {
+            nameContainer.innerText = '-'
+            return
+        }
+    }
     let name
     elementDictionary = {}
     lineDictionary = {}

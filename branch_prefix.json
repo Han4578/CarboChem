@@ -1,0 +1,42 @@
+[
+    {
+        "length": 1,
+        "name": ""
+    },
+    {
+        "length": 2,
+        "name": "di"
+    },
+    {
+        "length": 3,
+        "name": "tri"
+    },
+    {
+        "length": 4,
+        "name": "tetra"
+    },
+    {
+        "length": 5,
+        "name": "penta"
+    },
+    {
+        "length": 6,
+        "name": "hexa"
+    },
+    {
+        "length": 7,
+        "name": "hepta"
+    },
+    {
+        "length": 8,
+        "name": "octa"
+    },
+    {
+        "length": 9,
+        "name": "nona"
+    },
+    {
+        "length": 10,
+        "name": "deca"
+    }
+]
