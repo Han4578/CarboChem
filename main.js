@@ -637,13 +637,13 @@ export function ElementObjectMatch(element) {
 }
 
 export function refreshName() {
-    for (const line of lineArray) {
-        if (line.element.classList.contains('clickable')) {
-            nameContainer.innerText = '-'
+    let name = '-'
+    for (const element of elementArray) {
+        if (element.leftBond + element.rightBond + element.upperBond + element.downBond !== element.bonds) {
+            nameContainer.innerText = name
             return
         }
     }
-    let name
     elementDictionary = {}
     lineDictionary = {}
 
@@ -661,9 +661,9 @@ export function refreshName() {
         if (lineDictionary.hasOwnProperty(2) && lineDictionary.hasOwnProperty(3)) {
 
         } else if (lineDictionary.hasOwnProperty(2)) {
-            name = Name.alkene()
+            // name = Name.alkene()
         } else if (lineDictionary.hasOwnProperty(3)) {
-            name = Name.alkyne()
+            // name = Name.alkyne()
         } else name = Name.alkane()
     }
 

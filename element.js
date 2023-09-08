@@ -1,5 +1,5 @@
 import { Line } from "./line.js"
-import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch, lineObjectMatch, refreshDeletion, selectedLineBonds, trimEdges, checkAllForBlockage, deleteMode, changeDelete} from "./main.js"
+import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch, lineObjectMatch, refreshDeletion, selectedLineBonds, trimEdges, checkAllForBlockage, deleteMode, changeDelete, refreshName} from "./main.js"
 
 export class Element {
     constructor(name, location, bonds) {
@@ -217,6 +217,7 @@ export class Element {
         if (!deleteMode) {
             changeDelete()
         }
+        refreshName()
     }
 
     trace(exceptionArray) {
