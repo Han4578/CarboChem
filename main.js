@@ -662,9 +662,9 @@ export function refreshName() {
         if (lineDictionary.hasOwnProperty(2) && lineDictionary.hasOwnProperty(3)) {
 
         } else if (lineDictionary.hasOwnProperty(2)) {
-            // name = Name.alkene()
+            name = Name.alkene()
         } else if (lineDictionary.hasOwnProperty(3)) {
-            // name = Name.alkyne()
+            name = Name.alkyne()
         } else name = Name.alkane()
     }
 
@@ -676,8 +676,8 @@ resetButton.addEventListener('click', reset)
 autoButton.addEventListener('click', autoFillHydrogen)
 window.addEventListener('resize', checkScreenSize)
 deleteButton.addEventListener('click', changeDelete)
-plus.addEventListener('click', enlarge)
-minus.addEventListener('click', reduce)
+plus.addEventListener('click', zoom)
+minus.addEventListener('click', shrink)
 question.addEventListener('click', () => {
     darken.classList.toggle('show')
 })
@@ -705,32 +705,32 @@ lineButton.addEventListener('click', () => {
     event.stopPropagation()
 })
 
-function enlarge() {
-    if (gridSize == 30) {
-        minus.addEventListener('click', reduce)
+function zoom() {
+    if (gridSize == 20) {
+        minus.addEventListener('click', shrink)
     }
     
     gridSize += 10
     document.documentElement.style.setProperty('--width', gridSize)
 
     if (gridSize == 100) {
-        plus.removeEventListener('click', enlarge)
+        plus.removeEventListener('click', zoom)
         plus.classList.add('greyed')
     } 
     minus.classList.remove('greyed')
     checkScreenSize()
 }
 
-function reduce() {
+function shrink() {
     if (gridSize == 100) {
-        plus.addEventListener('click', enlarge)
+        plus.addEventListener('click', zoom)
     }
     
     gridSize -= 10
     document.documentElement.style.setProperty('--width', gridSize)
 
     if (gridSize == 20) {
-        minus.removeEventListener('click', reduce)
+        minus.removeEventListener('click', shrink)
         minus.classList.add('greyed')
     } 
     plus.classList.remove('greyed')
@@ -809,5 +809,5 @@ window.addEventListener('keydown', e => {
     }
 })
 reset()
-enlarge()
-reduce()
+zoom()
+shrink()

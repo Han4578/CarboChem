@@ -118,4 +118,27 @@ export class Line {
         let index = lineArray.indexOf(this)
         lineArray.splice(index, 1)
     }
+
+    elementScan() {
+        let parent = this.parent
+        let otherElem
+
+        if (parent.x > this.x) {
+            otherElem = parent.left
+        }
+
+        if (parent.x < this.x) {
+            otherElem = parent.right
+        }
+
+        if (parent.y > this.y) {
+            otherElem = parent.up
+        }
+
+        if (parent.y < this.y) {
+            otherElem = parent.down
+        }
+
+        return [parent, otherElem]
+    }
 }

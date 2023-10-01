@@ -1,4 +1,4 @@
-import { elementArray, lineArray, elementDictionary, lineDictionary } from "./main.js";
+import { elementArray, lineArray, elementDictionary, lineDictionary, ElementObjectMatch } from "./main.js";
 
 export let Name = {
     alkane() {
@@ -33,9 +33,9 @@ export let Name = {
                     let branches = [carbon.left, carbon.right, carbon.up, carbon.down].filter(c => {return c !== undefined && c.name !== 'H' && !chain.includes(c)})
                     if (branches.length == 0) continue
                     
-                    if (branches.indexOf(carbon) < LowestIndex)  {
+                    if (chain.indexOf(carbon) < LowestIndex)  {
                         lowestNumberChain = chain
-                        LowestIndex = branches.indexOf(carbon)
+                        LowestIndex = chain.indexOf(carbon)
                     }
                     break
                 }
@@ -64,11 +64,193 @@ export let Name = {
     },
 
     alkene() {
+        let carbons = elementArray.filter(e => {return e.name == 'C'})
+        let doubleCarbons = carbons.filter(c => {return c.upperBond == 2 || c.lowerBond == 2 || c.leftBond == 2 || c.rightBond == 2})
+        let doubleLines = lineArray.filter(l => {return l.bonds == 2})
+        let carbonChains = []
+        let length = 0
+        let prefix
+        let location = ''
 
+        for (const carbon of carbons) {
+            let neighbourCarbons = [carbon.left, carbon.right, carbon.up, carbon.down].filter(c => {return c !== undefined && c.name == 'C'})
+            if (neighbourCarbons.length > 1) continue
+
+            let branch = carbon.carbonTrace(carbon)
+            if (branch.length > 1) {
+                for (const b of branch) {
+                    carbonChains.push([carbon].concat(b))
+                }
+            } else carbonChains.push([carbon].concat(...branch))
+        }
+
+        for (const chain of carbonChains) {
+            if (chain.length > length) length = chain.length
+        }
+
+        let alkeneChains = carbonChains.filter(c => {return doubleCarbons.every(val => c.length == length && c.includes(val))})
+        let lowestNumberChains = []
+        let lowestNumberChain
+        let LowestIndex = length
+
+        for (const chain of alkeneChains) {
+            for (const carbon of chain) {
+                if (carbon.upperBond == 2 || carbon.lowerBond == 2 || carbon.leftBond == 2 || carbon.rightBond == 2) {
+                    if (chain.indexOf(carbon) < LowestIndex) {
+                        LowestIndex = chain.indexOf(carbon)
+                        lowestNumberChains = [chain]
+                    } else if (chain.indexOf(carbon) == LowestIndex) {
+                        lowestNumberChains.push(chain)
+                    }
+                    break
+                }
+            }
+        }
+
+        if (lowestNumberChains.length > 1) {
+            lowestNumberChain = lowestNumberChains[0]
+            for (const chain of lowestNumberChains) {
+                let index = length
+                for (const carbon of chain) {
+                    let branches = [carbon.left, carbon.right, carbon.up, carbon.down].filter(c => {return c !== undefined && c.name !== 'H' && !chain.includes(c)})
+                    if (branches.length == 0) continue
+                    
+                    if (chain.indexOf(carbon) < index)  {
+                        lowestNumberChain = chain
+                        index = chain.indexOf(carbon)
+                    }
+                    break
+                }
+            }
+        } else lowestNumberChain = lowestNumberChains[0]
+
+        let doubleLineCarbons = doubleLines.map(l => {return l.elementScan()})
+        let locations = []
+        
+        for (const carbons of doubleLineCarbons) {
+            carbons.sort((a, b) => {return lowestNumberChain.indexOf(a) - lowestNumberChain.indexOf(b)})
+                locations.push(lowestNumberChain.indexOf(carbons[0]) + 1)
+        }
+            
+        locations = [...new Set(locations)]
+        locations.sort((a, b) => {return a - b})
+        if (length > 3) location = "-" + locations.join() + "-"
+
+        let enePrefix = numericalMultiplier(locations.length)
+        let branches = this.branch(lowestNumberChain)
+        
+        prefix = carbonPrefix(length)
+        let branchNames = [...new Set(branches.map(b => {return b[0]}))]
+        let numberBranchNames = []        
+
+        branchNames.sort()
+        for (const name of branchNames) {
+            let numArray = []
+            for (const branch of branches) {
+                if (branch[0] == name) numArray.push(branch[1]) 
+            }
+            numArray.sort((a, b) => {return a - b})
+            if (length <= 4 && !['chloro', 'bromo', 'iodo'].includes(name)) {
+                numberBranchNames.push(numericalMultiplier(numArray.length) + name)
+            } else numberBranchNames.push(numArray.join(', ')+ '-' + numericalMultiplier(numArray.length) + name)
+        }
+
+        return numberBranchNames.join('-') + prefix + location + enePrefix + 'ene'
     },
 
     alkyne() {
+        let carbons = elementArray.filter(e => {return e.name == 'C'})
+        let doubleCarbons = carbons.filter(c => {return c.upperBond == 3 || c.lowerBond == 3 || c.leftBond == 3 || c.rightBond == 3})
+        let doubleLines = lineArray.filter(l => {return l.bonds == 3})
+        let carbonChains = []
+        let length = 0
+        let prefix
+        let location = ''
 
+        for (const carbon of carbons) {
+            let neighbourCarbons = [carbon.left, carbon.right, carbon.up, carbon.down].filter(c => {return c !== undefined && c.name == 'C'})
+            if (neighbourCarbons.length > 1) continue
+
+            let branch = carbon.carbonTrace(carbon)
+            if (branch.length > 1) {
+                for (const b of branch) {
+                    carbonChains.push([carbon].concat(b))
+                }
+            } else carbonChains.push([carbon].concat(...branch))
+        }
+
+        for (const chain of carbonChains) {
+            if (chain.length > length) length = chain.length
+        }
+
+        let alkeneChains = carbonChains.filter(c => {return doubleCarbons.every(val => c.length == length && c.includes(val))})
+        let lowestNumberChains = []
+        let lowestNumberChain
+        let LowestIndex = length
+
+        for (const chain of alkeneChains) {
+            for (const carbon of chain) {
+                if (carbon.upperBond == 3 || carbon.lowerBond == 3 || carbon.leftBond == 3 || carbon.rightBond == 3) {
+                    if (chain.indexOf(carbon) < LowestIndex) {
+                        LowestIndex = chain.indexOf(carbon)
+                        lowestNumberChains = [chain]
+                    } else if (chain.indexOf(carbon) == LowestIndex) {
+                        lowestNumberChains.push(chain)
+                    }
+                    break
+                }
+            }
+        }
+
+        if (lowestNumberChains.length > 1) {
+            lowestNumberChain = lowestNumberChains[0]
+            for (const chain of lowestNumberChains) {
+                let index = length
+                for (const carbon of chain) {
+                    let branches = [carbon.left, carbon.right, carbon.up, carbon.down].filter(c => {return c !== undefined && c.name !== 'H' && !chain.includes(c)})
+                    if (branches.length == 0) continue
+                    
+                    if (chain.indexOf(carbon) < index)  {
+                        lowestNumberChain = chain
+                        index = chain.indexOf(carbon)
+                    }
+                    break
+                }
+            }
+        } else lowestNumberChain = lowestNumberChains[0]
+
+        let doubleLineCarbons = doubleLines.map(l => {return l.elementScan()})
+        let locations = []
+        
+        for (const carbons of doubleLineCarbons) {
+            carbons.sort((a, b) => {return lowestNumberChain.indexOf(a) - lowestNumberChain.indexOf(b)})
+                locations.push(lowestNumberChain.indexOf(carbons[0]) + 1)
+        }
+            
+        locations = [...new Set(locations)]
+        locations.sort((a, b) => {return a - b})
+        if (length > 3) location = "-" + locations.join() + "-"
+
+        let enePrefix = numericalMultiplier(locations.length)
+        let branches = this.branch(lowestNumberChain)
+        
+        prefix = carbonPrefix(length)
+        let branchNames = [...new Set(branches.map(b => {return b[0]}))]
+        let numberBranchNames = []        
+
+        branchNames.sort()
+        for (const name of branchNames) {
+            let numArray = []
+            for (const branch of branches) {
+                if (branch[0] == name) numArray.push(branch[1]) 
+            }
+            numArray.sort((a, b) => {return a - b})
+            if (length <= 4 && !['chloro', 'bromo', 'iodo'].includes(name)) {
+                numberBranchNames.push(numericalMultiplier(numArray.length) + name)
+            } else numberBranchNames.push(numArray.join(', ')+ '-' + numericalMultiplier(numArray.length) + name)
+        }
+
+        return numberBranchNames.join('-') + prefix + location + enePrefix + 'yne'
     },
 
     enyne() {
