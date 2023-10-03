@@ -335,7 +335,7 @@ export class Element {
 
                 if (movable) {
                     move('up', ElementsToMove, 2)
-                    this.extendedUp = false
+                    this.extendedDown = false
                 }
             }
             if (this.extendedUp) {
@@ -365,7 +365,7 @@ export class Element {
 
                 if (movable) {
                     move('up', ElementsToMove, 2)
-                    this.extendedDown = false
+                    this.extendedUp = false
                 }
             }
         }
