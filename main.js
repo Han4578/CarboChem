@@ -17,6 +17,7 @@ let tutorial = document.querySelector('.tutorial')
 let plus = document.querySelector('.plus')
 let minus = document.querySelector('.minus')
 let nameContainer = document.querySelector('.name')
+let copy = document.querySelector('.copy')
 let lineSelection = document.querySelectorAll('.line-selection')
 let gridArray = []
 let RowArray = []
@@ -639,6 +640,10 @@ export function ElementObjectMatch(element) {
 
 export function refreshName() {
     let name = '-'
+    let length = 0
+    let carbonChains = []
+    let carbons = elementArray.filter(e => {return e.name == 'C'})
+
     for (const element of elementArray) {
         if (element.leftBond + element.rightBond + element.upperBond + element.downBond !== element.bonds) {
             nameContainer.innerText = name
@@ -658,14 +663,39 @@ export function refreshName() {
         lineDictionary[bonds] = (lineDictionary.hasOwnProperty(bonds))? lineDictionary[bonds] + 1: 1;
     }
 
+    for (const carbon of carbons) {
+        let neighbourCarbons = [carbon.left, carbon.right, carbon.up, carbon.down].filter(c => {return c !== undefined && c.name == 'C'})
+        if (neighbourCarbons.length > 1) continue
+
+        let branch = carbon.carbonTrace(carbon)
+        if (branch.length > 1) {
+            for (const b of branch) {
+                carbonChains.push([carbon].concat(b))
+            }
+        } else carbonChains.push([carbon].concat(...branch))
+    }
+
+    for (const chain of carbonChains) {
+        if (chain.length > length) length = chain.length
+    }
+
     if (!elementDictionary.hasOwnProperty('O')) {
         if (lineDictionary.hasOwnProperty(2) && lineDictionary.hasOwnProperty(3)) {
 
         } else if (lineDictionary.hasOwnProperty(2)) {
-            name = Name.alkene()
+            name = Name.alkene(carbons, length, carbonChains)
         } else if (lineDictionary.hasOwnProperty(3)) {
-            name = Name.alkyne()
-        } else name = Name.alkane()
+            name = Name.alkyne(carbons, length, carbonChains)
+        } else {
+            name = Name.alkane(length, carbonChains)
+        }
+    } else {
+        let oxygens = elementArray.filter(e => {return e.name == "O"})
+
+        if (oxygens.every(o => {return [o.left, o.right, o.up, o.down].some(e => e !== undefined && e.name == "H")})) {
+            name = Name.alcohol(length, carbonChains, oxygens)
+        }
+
     }
 
     nameContainer.innerText = name
@@ -703,6 +733,15 @@ lineButton.addEventListener('click', () => {
     lineMenu.classList.toggle('show')
     elementMenu.classList.remove('show')
     event.stopPropagation()
+})
+
+copy.addEventListener("click", () => {
+    navigator.clipboard.writeText(nameContainer.innerText)
+    copy.classList.add("green")
+})
+
+copy.addEventListener("mouseout", () => {
+    copy.classList.remove("green")
 })
 
 function zoom() {

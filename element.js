@@ -174,8 +174,8 @@ export class Element {
 
     delete() {
         let thisObject = ElementObjectMatch(this)
-        let targets = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && e.bonds < thisObject.bonds})
-        let leftOvers = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && e.bonds >= thisObject.bonds})
+        let targets = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && e.bonds == 1})
+        let leftOvers = [thisObject.up, thisObject.down, thisObject.left, thisObject.right].filter(e => {return e !== undefined && !targets.includes(e)})
         targets.push(thisObject)
 
         for (const obj of targets) {
@@ -187,22 +187,22 @@ export class Element {
         for (const leftOver of leftOvers) {
             leftOver.checkForReduction(thisObject)
 
-            if (leftOver.left == thisObject) {
+            if (targets.includes(leftOver.left)) {
                 leftOver.left = undefined
                 leftOver.leftBond = 0
                 leftOver.extendedLeft = false
             }
-            else if (leftOver.right == thisObject) {
+            else if (targets.includes(leftOver.right)) {
                 leftOver.right = undefined
                 leftOver.rightBond = 0
                 leftOver.extendedRight = false
             }
-            else if (leftOver.up == thisObject) {
+            else if (targets.includes(leftOver.up)) {
                 leftOver.up = undefined
                 leftOver.upperBond = 0
                 leftOver.extendedUp = false
             }
-            else if (leftOver.down == thisObject) {
+            else if (targets.includes(leftOver.down)) {
                 leftOver.down = undefined
                 leftOver.downBond = 0
                 leftOver.extendedDown = false

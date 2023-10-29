@@ -212,7 +212,7 @@ div.selected {
     width: 105%;
 }
 
-.name {
+.name-container {
     width: 100%;
     height: 10vh;
     background-color: #b0b0b0;
@@ -220,6 +220,30 @@ div.selected {
     justify-content: center;
     align-items: center;
     font-size: 48px;
+    gap: 5vw;
+}
+
+.copy, .empty {
+    aspect-ratio: 1;
+    height: 60%;
+    border-radius: 0.8em;
+    border-width: 1px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.copy:hover {
+    filter: brightness(0.9);
+}
+
+.copy.green {
+    background-color: greenyellow;
+}
+
+.copy > img {
+    height: 70%;
+    user-select: none;
 }
 
 .slot {
