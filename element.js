@@ -414,4 +414,8 @@ export class Element {
             return branches
         } else return [finalTraced]
     }
+
+    neighbourScan() {
+        return [this.up, this.down, this.left, this.right].filter(e => {return e !== undefined})
+    }
 }

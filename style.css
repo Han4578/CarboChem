@@ -5,6 +5,7 @@
 * {
     box-sizing: border-box;
     user-select: none;
+    transition: all 0.3s;
 }
 
 body {
@@ -164,10 +165,12 @@ div.selected {
     right: 120px;
     padding: 10px;
     border-radius: 15px;
-    display: none;
+    filter: opacity(0);
     gap: 1vw;
     flex-wrap: wrap;
     z-index: 2;
+    pointer-events: none;
+    display: flex;
 }
 
 .line-menu {
@@ -176,7 +179,8 @@ div.selected {
 }
 
 .show {
-    display: flex;
+    filter: opacity(1);
+    pointer-events: all;
 }
 
 .element-selection, .line-selection {    

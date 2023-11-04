@@ -683,18 +683,31 @@ export function refreshName() {
         if (lineDictionary.hasOwnProperty(2) && lineDictionary.hasOwnProperty(3)) {
 
         } else if (lineDictionary.hasOwnProperty(2)) {
-            name = Name.alkene(carbons, length, carbonChains)
+            name = Name.alkene(length, carbonChains)
         } else if (lineDictionary.hasOwnProperty(3)) {
-            name = Name.alkyne(carbons, length, carbonChains)
+            name = Name.alkyne(length, carbonChains)
         } else {
             name = Name.alkane(length, carbonChains)
         }
     } else {
         let oxygens = elementArray.filter(e => {return e.name == "O"})
 
-        if (oxygens.every(o => {return [o.left, o.right, o.up, o.down].some(e => e !== undefined && e.name == "H")})) {
-            name = Name.alcohol(length, carbonChains, oxygens)
+        if (!oxygens.every(o => {return o.neighbourScan().some(e => {return ["O", "Cl", "Br", "I"].includes(e.name)})})) {
+            if (oxygens.every(o => {return o.neighbourScan().some(e => {return e.name == "H"})})) {
+                name = Name.alcohol(length, carbonChains, oxygens)
+            } else if (oxygens.some(o => {return o.neighbourScan().filter(e => e.name == "C").length > 1})) { //ether
+                
+            } else {
+                let hydroxyls = oxygens.filter(o => {return o.neighbourScan().some(e => {return e.name == "H"})})
+                let carbonyls = oxygens.filter(o => {return o.neighbourScan().length == 1})
+                let hydroxylCarbons = hydroxyls.map(o => {return o.neighbourScan().filter(c => {return c.name == "C"})[0]})
+                let carbonylCarbons = carbonyls.map(c => {return c.neighbourScan()[0]})
+                let carboxylCarbons = hydroxylCarbons.filter(c => {return carbonylCarbons.includes(c)})
+
+                if (carboxylCarbons.length > 0) name = Name.carboxylicAcid(carbonChains, carboxylCarbons)
+            }
         }
+
 
     }
 
