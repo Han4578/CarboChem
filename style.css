@@ -186,6 +186,11 @@ div.selected {
 .element-selection, .line-selection {    
     width: 50px;
     box-shadow: 0 0 10px #a6a6a6;
+    pointer-events: none;
+}
+
+.show .element-selection, .show .line-selection {
+    pointer-events: all;
 }
 
 .line-button {

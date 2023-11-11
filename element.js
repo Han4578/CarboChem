@@ -19,14 +19,14 @@ export class Element {
         this.leftBond = 0
         this.rightBond = 0
         this.upperBond = 0
-        this.downBond = 0
+        this.lowerBond = 0
         this.main = false
     }
 
     refreshLines(refreshClickable) {
         let grids = this.scan()
         let emptyGrids = grids.filter(g => {return g.children.length == 0})
-        let bonds = this.leftBond + this.rightBond + this.upperBond + this.downBond
+        let bonds = this.leftBond + this.rightBond + this.upperBond + this.lowerBond
         if (this.bonds - bonds >= selectedLineBonds) {
             for (const grid of emptyGrids) {
                 let lineObj
@@ -204,7 +204,7 @@ export class Element {
             }
             else if (targets.includes(leftOver.down)) {
                 leftOver.down = undefined
-                leftOver.downBond = 0
+                leftOver.lowerBond = 0
                 leftOver.extendedDown = false
             }
         }

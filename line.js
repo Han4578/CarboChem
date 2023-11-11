@@ -41,7 +41,7 @@ export class Line {
 
             oldObj.down = newObj
             newObj.up = oldObj
-            oldObj.downBond = selectedLineBonds
+            oldObj.lowerBond = selectedLineBonds
             newObj.upperBond = selectedLineBonds
         }
         if (parseInt(newGrid.dataset.y) < lineObj.y)  { // new up old down
@@ -50,7 +50,7 @@ export class Line {
             oldObj.up = newObj
             newObj.down = oldObj
             oldObj.upperBond = selectedLineBonds
-            newObj.downBond = selectedLineBonds
+            newObj.lowerBond = selectedLineBonds
         }
 
         lineObj.element.classList.remove('clickable')

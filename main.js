@@ -292,7 +292,7 @@ export function checkAllForBlockage(newObj = undefined) {
 
         if (hasChanged) continue
 
-        let clickableElements = elementArray.filter(e => {return e.bonds - (e.leftBond + e.rightBond + e.upperBond + e.downBond) !== 0})
+        let clickableElements = elementArray.filter(e => {return e.bonds - (e.leftBond + e.rightBond + e.upperBond + e.lowerBond) !== 0})
 
         for (const element of clickableElements) { // check if elements are blocking clickable lines
             if (element.left == undefined) {
@@ -645,7 +645,7 @@ export function refreshName() {
     let carbons = elementArray.filter(e => {return e.name == 'C'})
 
     for (const element of elementArray) {
-        if (element.leftBond + element.rightBond + element.upperBond + element.downBond !== element.bonds) {
+        if (element.leftBond + element.rightBond + element.upperBond + element.lowerBond !== element.bonds) {
             nameContainer.innerText = name
             return
         }
@@ -653,17 +653,17 @@ export function refreshName() {
     elementDictionary = {}
     lineDictionary = {}
 
-    for (const element of elementArray) {
+    for (const element of elementArray) { //element dictionary
         let name = element.name
         elementDictionary[name] = (elementDictionary.hasOwnProperty(name))? elementDictionary[name] + 1: 1;
     }
 
-    for (const line of lineArray) {
+    for (const line of lineArray) { //line dictionary
         let bonds = line.bonds
         lineDictionary[bonds] = (lineDictionary.hasOwnProperty(bonds))? lineDictionary[bonds] + 1: 1;
     }
 
-    for (const carbon of carbons) {
+    for (const carbon of carbons) { //get all carbon chains
         let neighbourCarbons = [carbon.left, carbon.right, carbon.up, carbon.down].filter(c => {return c !== undefined && c.name == 'C'})
         if (neighbourCarbons.length > 1) continue
 
@@ -675,20 +675,12 @@ export function refreshName() {
         } else carbonChains.push([carbon].concat(...branch))
     }
 
-    for (const chain of carbonChains) {
+    for (const chain of carbonChains) { //find longest chain length
         if (chain.length > length) length = chain.length
     }
 
     if (!elementDictionary.hasOwnProperty('O')) {
-        if (lineDictionary.hasOwnProperty(2) && lineDictionary.hasOwnProperty(3)) {
-
-        } else if (lineDictionary.hasOwnProperty(2)) {
-            name = Name.alkene(length, carbonChains)
-        } else if (lineDictionary.hasOwnProperty(3)) {
-            name = Name.alkyne(length, carbonChains)
-        } else {
-            name = Name.alkane(length, carbonChains)
-        }
+        name = Name.hydrocarbon(length, carbonChains)
     } else {
         let oxygens = elementArray.filter(e => {return e.name == "O"})
 
