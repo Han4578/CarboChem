@@ -306,7 +306,7 @@ export let Name = {
             }
         }
 
-        let name = this.alcoholName(lowestNumberChain)
+        let name = this.hydrocarbonName(lowestNumberChain, true)
         let locations = []
         let location = ''
         let prefix = numericalMultiplier(hydroxylCarbons.length)
@@ -321,14 +321,6 @@ export let Name = {
         if (hydroxylCarbons.length == 1) name = name.slice(0, -1)
 
         return name + location + prefix + "ol"
-    },
-
-    alcoholName(lowestNumberChain) {
-        if (lineDictionary[2] > 0) {
-            return this.alkeneName(lowestNumberChain, true)
-        } else if (lineDictionary[3] > 0) {
-            return this.alkyneName(lowestNumberChain, true)
-        } else return this.alkaneName(lowestNumberChain, true)
     },
 
     carboxylicAcid(carbonChains, carboxylCarbons) {
@@ -379,21 +371,13 @@ export let Name = {
             }
         }
 
-        let name = this.carboxylicAcidName(lowestNumberChain)
+        let name = this.hydrocarbonName(lowestNumberChain, true)
 
         if (carboxylCarbons.length == 1) {
             name = name.slice(0, -1) + "oic acid"
         } else name += "dioic acid"
 
         return name
-    },
-
-    carboxylicAcidName(lowestNumberChain) {
-        if (lineDictionary[2] > 1) {
-            return this.alkeneName(lowestNumberChain, true)
-        } else if (lineDictionary[3] > 0) {
-            return this.alkyneName(lowestNumberChain, true)
-        } else return this.alkaneName(lowestNumberChain, true)
     },
 
     alkyl(branch, startingElement, mainElement) {
