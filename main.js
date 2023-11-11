@@ -111,9 +111,10 @@ export function removeClickableLines() {
     for (const line of clickableLines) {
         line.delete()
     }
-    for (const element of elementArray) {
-        if (selectedLineBonds > selectedElementBonds) break
-        element.refreshLines(false)
+    if (selectedLineBonds <= selectedElementBonds) {
+        for (const element of elementArray) {
+            element.refreshLines(false)
+        }
     }
 }
 
@@ -474,20 +475,22 @@ function changeLineSelection(bond) {
 export function changeDelete() {
     deleteButton.classList.toggle('selected')
     deleteMode = !deleteMode
-    if (deleteMode) {
+    if (deleteMode) { //turn off
         for (const lineObj of lineArray) {
             lineObj.element.removeEventListener('click', lineObj.addElement)
             lineObj.element.classList.remove('clickable')
         }
         refreshDeletion()
-    } else {
+    } else { //turn on
         let deletableElements = elementArray.filter(e => {return e.element.classList.contains("deletable")})
         for (const elemObj of deletableElements) {
             elemObj.element.classList.remove('deletable')
             elemObj.element.removeEventListener('click', elemObj.delete)
         }
-        for (const element of elementArray) {
-            element.refreshLines()
+        if (selectedLineBonds <= selectedElementBonds) {
+            for (const element of elementArray) {
+                element.refreshLines()
+            }
         }
         refreshClickableLines()
     }

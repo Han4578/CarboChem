@@ -143,7 +143,7 @@ export let Name = {
         return name
     },
 
-    alkaneName(lowestNumberChain) {
+    alkaneName(lowestNumberChain, hasMainFunctionalGroup = false) {
         let branches = this.branch(lowestNumberChain)
         let length = lowestNumberChain.length
         let prefix = carbonPrefix(length)
@@ -157,13 +157,20 @@ export let Name = {
                 if (branch[0] == name) numArray.push(branch[1]) 
             }
             numArray.sort((a, b) => {return a - b})
-            numberBranchNames.push(numArray.join(',')+ '-' + numericalMultiplier(numArray.length) + name)
+
+            if  ((!hasMainFunctionalGroup && length <= 4 && !['chloro', 'bromo', 'iodo'].includes(name) && branches.length == 1) || //one alkyl branch
+                (!hasMainFunctionalGroup && length == 2 && ['chloro', 'bromo', 'iodo'].includes(name) && numArray.length == 1) ||
+                (length == 1 && ['chloro', 'bromo', 'iodo'].includes(name))
+            ) { //halobranch
+                numberBranchNames.push(numericalMultiplier(numArray.length) + name)
+            } else numberBranchNames.push(numArray.join(', ')+ '-' + numericalMultiplier(numArray.length) + name)
         }
+
 
         return numberBranchNames.join('-') + prefix + 'ane'
     },
 
-    alkeneName(lowestNumberChain, isAlcohol = false) {
+    alkeneName(lowestNumberChain, hasMainFunctionalGroup = false) {
         let doubleLines = lineArray.filter(l => {return l.bonds == 2})
         let doubleLineCarbons = doubleLines.map(l => {return l.elementScan()})
         let location = ''
@@ -177,7 +184,7 @@ export let Name = {
             
         locations = [...new Set(locations)]
         locations.sort((a, b) => {return a - b})
-        if (length > 3 || (isAlcohol && length > 2) && locations.length > 0) location = "-" + locations.join() + "-"
+        if (length > 3 || (hasMainFunctionalGroup && length > 2) && locations.length > 0) location = "-" + locations.join() + "-"
 
         let enePrefix = numericalMultiplier(locations.length)
         let branches = this.branch(lowestNumberChain)
@@ -195,14 +202,20 @@ export let Name = {
                 if (branch[0] == name) numArray.push(branch[1]) 
             }
             numArray.sort((a, b) => {return a - b})
-            numberBranchNames.push(numArray.join(', ')+ '-' + numericalMultiplier(numArray.length) + name)
+            
+            if  ((!hasMainFunctionalGroup && length <= 4 && !['chloro', 'bromo', 'iodo'].includes(name) && branches.length == 1) || //one alkyl branch
+                (!hasMainFunctionalGroup && length == 2 && ['chloro', 'bromo', 'iodo'].includes(name) && numArray.length == 1) ||
+                (length == 1 && ['chloro', 'bromo', 'iodo'].includes(name)) //halobranch
+            ) {
+                numberBranchNames.push(numericalMultiplier(numArray.length) + name)
+            } else numberBranchNames.push(numArray.join(', ')+ '-' + numericalMultiplier(numArray.length) + name)
 
         }
 
         return numberBranchNames.join('-') + prefix + location + enePrefix + 'ene'
     },
 
-    alkyneName(lowestNumberChain, isAlcohol = false) {
+    alkyneName(lowestNumberChain, hasMainFunctionalGroup = false) {
         let tripleLines = lineArray.filter(l => {return l.bonds == 3})
         let tripleLineCarbons = tripleLines.map(l => {return l.elementScan()})
         let location = ''
@@ -217,7 +230,7 @@ export let Name = {
             
         locations = [...new Set(locations)]
         locations.sort((a, b) => {return a - b})
-        if (length > 3 || (isAlcohol && length > 2) && locations.length > 0) location = "-" + locations.join() + "-"
+        if (length > 3 || (hasMainFunctionalGroup && length > 2) && locations.length > 0) location = "-" + locations.join() + "-"
 
 
         let enePrefix = numericalMultiplier(locations.length)
@@ -236,7 +249,13 @@ export let Name = {
                 if (branch[0] == name) numArray.push(branch[1]) 
             }
             numArray.sort((a, b) => {return a - b})
-            numberBranchNames.push(numArray.join(', ')+ '-' + numericalMultiplier(numArray.length) + name)
+            
+            if  ((!hasMainFunctionalGroup && length <= 4 && !['chloro', 'bromo', 'iodo'].includes(name) && branches.length == 1) || //one alkyl branch
+                (!hasMainFunctionalGroup && length == 2 && ['chloro', 'bromo', 'iodo'].includes(name) && numArray.length == 1) ||
+                (length == 1 && ['chloro', 'bromo', 'iodo'].includes(name))
+            ) { //halobranch
+                numberBranchNames.push(numericalMultiplier(numArray.length) + name)
+            } else numberBranchNames.push(numArray.join(', ')+ '-' + numericalMultiplier(numArray.length) + name)        
         }
 
         return numberBranchNames.join('-') + prefix + location + enePrefix + 'yne'
@@ -361,7 +380,7 @@ export let Name = {
             return this.alkeneName(lowestNumberChain, true)
         } else if (lineDictionary[3] > 0) {
             return this.alkyneName(lowestNumberChain, true)
-        } else return this.alkaneName(lowestNumberChain)
+        } else return this.alkaneName(lowestNumberChain, true)
     },
 
     carboxylicAcid(carbonChains, carboxylCarbons) {
@@ -426,7 +445,7 @@ export let Name = {
             return this.alkeneName(lowestNumberChain, true)
         } else if (lineDictionary[3] > 0) {
             return this.alkyneName(lowestNumberChain, true)
-        } else return this.alkaneName(lowestNumberChain)
+        } else return this.alkaneName(lowestNumberChain, true)
     },
 
     alkyl(branch, startingElement, mainElement) {
