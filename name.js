@@ -54,16 +54,14 @@ export let Name = {
             let lowestMultiLocantChains = mostDoubleBondChains
             let LowestIndex = length
 
-            if (longestChains.length > 2 && tripleLines.length > 0) {
+            if (tripleLines.length > 0) {
                 for (const chain of mostDoubleBondChains) { //lowest multiple bond locant
                     let i = 1
                     for (const carbon of chain) {
                         if (carbon.upperBond == 1 && carbon.lowerBond == 1 && carbon.leftBond == 1 && carbon.rightBond == 1) continue
                         if (i == chain.length) break
                         let pair = [carbon, chain[i]]
-                        pair.sort((a, b) => {return a.x - b.x})
-                        pair.sort((a, b) => {return a.y - b.y})
-                        if (multiLineCarbons.includes(pair)) {
+                        if (multiLineCarbons.some(p => {return p.every(c => {return pair.includes(c)})})) {
                             if (i - 1 < LowestIndex) {
                                 LowestIndex = i - 1
                                 lowestMultiLocantChains = [chain]
@@ -132,65 +130,59 @@ export let Name = {
             }
         }
 
-        let name
-
-        if (lineDictionary[2] > 0) {
-            name = this.alkeneName(lowestNumberChain)
-        } else if (lineDictionary[3] > 0) {
-            name = this.alkyneName(lowestNumberChain)
-        } else name = this.alkaneName(lowestNumberChain)
-
-        return name
+        return this.hydrocarbonName(lowestNumberChain)
     },
 
-    alkaneName(lowestNumberChain, hasMainFunctionalGroup = false) {
-        let branches = this.branch(lowestNumberChain)
-        let length = lowestNumberChain.length
-        let prefix = carbonPrefix(length)
-        let branchNames = [...new Set(branches.map(b => {return b[0]}))]
-        let numberBranchNames = []
-
-        branchNames.sort()
-        for (const name of branchNames) {
-            let numArray = []
-            for (const branch of branches) {
-                if (branch[0] == name) numArray.push(branch[1]) 
-            }
-            numArray.sort((a, b) => {return a - b})
-
-            if  ((!hasMainFunctionalGroup && length <= 4 && !['chloro', 'bromo', 'iodo'].includes(name) && branches.length == 1) || //one alkyl branch
-                (!hasMainFunctionalGroup && length == 2 && ['chloro', 'bromo', 'iodo'].includes(name) && numArray.length == 1) ||
-                (length == 1 && ['chloro', 'bromo', 'iodo'].includes(name))
-            ) { //halobranch
-                numberBranchNames.push(numericalMultiplier(numArray.length) + name)
-            } else numberBranchNames.push(numArray.join(', ')+ '-' + numericalMultiplier(numArray.length) + name)
-        }
-
-
-        return numberBranchNames.join('-') + prefix + 'ane'
-    },
-
-    alkeneName(lowestNumberChain, hasMainFunctionalGroup = false) {
+    hydrocarbonName(lowestNumberChain, hasMainFunctionalGroup = false) {
         let doubleLines = lineArray.filter(l => {return l.bonds == 2})
-        let doubleLineCarbons = doubleLines.map(l => {return l.elementScan()})
-        let location = ''
-        let locations = []
+        let tripleLines = lineArray.filter(l => {return l.bonds == 3})
+        let eneLocation = ''
+        let yneLocation = ''
         let length = lowestNumberChain.length
+        let addA = false
         
-        for (const carbons of doubleLineCarbons) {
-            carbons.sort((a, b) => {return lowestNumberChain.indexOf(a) - lowestNumberChain.indexOf(b)})
-            if (lowestNumberChain.indexOf(carbons[0]) != -1)locations.push(lowestNumberChain.indexOf(carbons[0]) + 1)
-        }
-            
-        locations = [...new Set(locations)]
-        locations.sort((a, b) => {return a - b})
-        if (length > 3 || (hasMainFunctionalGroup && length > 2) && locations.length > 0) location = "-" + locations.join() + "-"
+        if (doubleLines.length > 0) {
+            let locations = []
+            let doubleLineCarbons = doubleLines.map(l => {return l.elementScan()})
 
-        let enePrefix = numericalMultiplier(locations.length)
+            for (const pair of doubleLineCarbons) {
+                pair.sort((a, b) => {return lowestNumberChain.indexOf(a) - lowestNumberChain.indexOf(b)})
+                if (lowestNumberChain.indexOf(pair[0]) != -1) locations.push(lowestNumberChain.indexOf(pair[0]) + 1)
+            }
+            if (locations.length > 0) {
+                locations.sort((a, b) => {return a - b})
+                
+                if (length > 3 || (hasMainFunctionalGroup && length > 2) && locations.length > 0) eneLocation = "-" + locations.join() + "-"
+                if (locations.length > 1) addA = true
+                
+                let enePrefix = numericalMultiplier(locations.length)
+                eneLocation += enePrefix + 'ene'
+            }
+        }
+
+        if (tripleLines.length > 0) {
+            let locations = []
+            let tripleLineCarbons = tripleLines.map(l => {return l.elementScan()})
+    
+            for (const pair of tripleLineCarbons) {
+                pair.sort((a, b) => {return lowestNumberChain.indexOf(a) - lowestNumberChain.indexOf(b)})
+                if (lowestNumberChain.indexOf(pair[0]) != -1) locations.push(lowestNumberChain.indexOf(pair[0]) + 1)
+            }
+            if (locations.length > 0) {
+                locations.sort((a, b) => {return a - b})
+                
+                if (length > 3 || (hasMainFunctionalGroup && length > 2) && locations.length > 0) yneLocation = "-" + locations.join() + "-"
+                
+                let ynePrefix = numericalMultiplier(locations.length)
+                yneLocation += ynePrefix + 'yne'
+            }
+        }
+
         let branches = this.branch(lowestNumberChain)
         let prefix = carbonPrefix(length)
         
-        if (locations.length > 1)  prefix += "a"
+        if (addA) prefix += "a"
+        if (yneLocation !== "") eneLocation = eneLocation.slice(0, -1)
 
         let branchNames = [...new Set(branches.map(b => {return b[0]}))]
         let numberBranchNames = []        
@@ -212,53 +204,9 @@ export let Name = {
 
         }
 
-        return numberBranchNames.join('-') + prefix + location + enePrefix + 'ene'
-    },
+        let main = (eneLocation == '' && yneLocation == '')? "ane" : eneLocation + yneLocation;
 
-    alkyneName(lowestNumberChain, hasMainFunctionalGroup = false) {
-        let tripleLines = lineArray.filter(l => {return l.bonds == 3})
-        let tripleLineCarbons = tripleLines.map(l => {return l.elementScan()})
-        let location = ''
-        let locations = []
-        let length = lowestNumberChain.length
-        
-        for (const carbons of tripleLineCarbons) {
-            carbons.sort((a, b) => {return lowestNumberChain.indexOf(a) - lowestNumberChain.indexOf(b)})
-            if (lowestNumberChain.indexOf(carbons[0]) != -1) locations.push(lowestNumberChain.indexOf(carbons[0]) + 1)
-
-        }
-            
-        locations = [...new Set(locations)]
-        locations.sort((a, b) => {return a - b})
-        if (length > 3 || (hasMainFunctionalGroup && length > 2) && locations.length > 0) location = "-" + locations.join() + "-"
-
-
-        let enePrefix = numericalMultiplier(locations.length)
-        let branches = this.branch(lowestNumberChain)
-        
-        let prefix = carbonPrefix(length)
-        if (locations.length > 1)  prefix += "a"
-
-        let branchNames = [...new Set(branches.map(b => {return b[0]}))]
-        let numberBranchNames = []        
-
-        branchNames.sort()
-        for (const name of branchNames) {
-            let numArray = []
-            for (const branch of branches) {
-                if (branch[0] == name) numArray.push(branch[1]) 
-            }
-            numArray.sort((a, b) => {return a - b})
-            
-            if  ((!hasMainFunctionalGroup && length <= 4 && !['chloro', 'bromo', 'iodo'].includes(name) && branches.length == 1) || //one alkyl branch
-                (!hasMainFunctionalGroup && length == 2 && ['chloro', 'bromo', 'iodo'].includes(name) && numArray.length == 1) ||
-                (length == 1 && ['chloro', 'bromo', 'iodo'].includes(name))
-            ) { //halobranch
-                numberBranchNames.push(numericalMultiplier(numArray.length) + name)
-            } else numberBranchNames.push(numArray.join(', ')+ '-' + numericalMultiplier(numArray.length) + name)        
-        }
-
-        return numberBranchNames.join('-') + prefix + location + enePrefix + 'yne'
+        return numberBranchNames.join('-') + prefix + main
     },
 
     alcohol(length, carbonChains, oxygens) {
