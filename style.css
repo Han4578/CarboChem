@@ -21,26 +21,17 @@ img {
     width: 100vw;
     height: 10vh;
     display: flex;
-    justify-content: end;
+    justify-content: space-between;
     gap: 1vw;
     padding: 0 50px;
     align-items: center;
     background-color: #a0a0a0;
-}
-
-.title-container {
     font-size: 48px;
-    font-weight: 200;
-    position: absolute;
-    left: 50%;
 }
 
-.title-container > div {
-    margin-left: -50%;
-}
-
-.question {
+.question, .emptyq {
     height: 5vh;
+    aspect-ratio: 1;
 }
 
 .question:hover {

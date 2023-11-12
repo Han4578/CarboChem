@@ -149,6 +149,9 @@ export let Name = {
                 pair.sort((a, b) => {return lowestNumberChain.indexOf(a) - lowestNumberChain.indexOf(b)})
                 if (lowestNumberChain.indexOf(pair[0]) != -1) locations.push(lowestNumberChain.indexOf(pair[0]) + 1)
             }
+
+            locations = [...new Set(locations)]
+
             if (locations.length > 0) {
                 locations.sort((a, b) => {return a - b})
                 
@@ -168,6 +171,9 @@ export let Name = {
                 pair.sort((a, b) => {return lowestNumberChain.indexOf(a) - lowestNumberChain.indexOf(b)})
                 if (lowestNumberChain.indexOf(pair[0]) != -1) locations.push(lowestNumberChain.indexOf(pair[0]) + 1)
             }
+
+            locations = [...new Set(locations)]
+
             if (locations.length > 0) {
                 locations.sort((a, b) => {return a - b})
                 
@@ -396,6 +402,7 @@ export let Name = {
             }
             carbonChains.sort((a, b) => {return b.length - a.length})
         } else carbonChains.push([startingElement].concat(...tracedElement))
+        console.log(carbonChains.map(c => {return c.length}));
 
         carbonChain = carbonChains[0]
 
