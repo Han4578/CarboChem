@@ -404,9 +404,10 @@ export function move(direction, stuff, steps) {
             newLine(direction, 1)
             newGrid = locateGrid(x, y)
         }
-        newGrid.appendChild(s.element)
+        if (s.element !== undefined) newGrid.appendChild(s.element)
 
-        s.updatePosition()
+        s.x = x
+        s.y = y
     }
 
 }
@@ -686,22 +687,29 @@ export function refreshName() {
         name = Name.hydrocarbon(length, carbonChains)
     } else {
         let oxygens = elementArray.filter(e => {return e.name == "O"})
+        let hydroxyls = oxygens.filter(o => {return o.neighbourScan().some(e => {return e.name == "H"}) && o.neighbourScan().some(e => {return e.name == "C"})})
+        let carbonyls = oxygens.filter(o => {return o.neighbourScan().length == 1 && o.neighbourScan()[0].name == "C"})
+        let hydroxylCarbons = hydroxyls.map(o => {return o.neighbourScan().filter(c => {return c.name == "C"})[0]})
+        let carbonylCarbons = carbonyls.map(c => {return c.neighbourScan()[0]})
+        let carboxylCarbons = hydroxylCarbons.filter(c => {return carbonylCarbons.includes(c)})
 
-        if (!oxygens.every(o => {return o.neighbourScan().some(e => {return ["O", "Cl", "Br", "I"].includes(e.name)})})) {
-            if (oxygens.every(o => {return o.neighbourScan().some(e => {return e.name == "H"})})) {
-                name = Name.alcohol(length, carbonChains, oxygens)
+        Name.hydroxylCarbons = hydroxylCarbons
+        Name.carboxylCarbons = carboxylCarbons
+        Name.carbonylCarbons = carbonylCarbons
+
+        if (!oxygens.some(o => {return o.neighbourScan().some(e => {return ["O", "Cl", "Br", "I"].includes(e.name)})})) {
+            if (oxygens.length == hydroxyls.length) {
+                name = Name.alcohol(carbonChains, oxygens)
             } else if (oxygens.some(o => {return o.neighbourScan().filter(e => e.name == "C").length > 1})) { //ether
                 
             } else {
-                let hydroxyls = oxygens.filter(o => {return o.neighbourScan().some(e => {return e.name == "H"})})
-                let carbonyls = oxygens.filter(o => {return o.neighbourScan().length == 1})
-                let hydroxylCarbons = hydroxyls.map(o => {return o.neighbourScan().filter(c => {return c.name == "C"})[0]})
-                let carbonylCarbons = carbonyls.map(c => {return c.neighbourScan()[0]})
-                let carboxylCarbons = hydroxylCarbons.filter(c => {return carbonylCarbons.includes(c)})
 
-                if (carboxylCarbons.length > 0) name = Name.carboxylicAcid(carbonChains, carboxylCarbons)
+
+                if (carboxylCarbons.length > 0) {
+                    name = Name.carboxylicAcid(carbonChains, carboxylCarbons)
+                }
             }
-        }
+        } else alert("Excluded structures detected, please check tutorial for more info (Excluded names).")
 
 
     }

@@ -233,8 +233,7 @@ export class Element {
     }
 
     backTrace(direction, exception) {
-        let neighbourElements = [this.left, this.right, this.up, this.down].filter(e => {return e !== undefined})
-
+        let neighbourElements = this.neighbourScan()
         for (const element of neighbourElements) {
             if (element == exception) continue
             if ((element.x == this.x && element.y == this.y) || (element.x !== this.x && element.y !== this.y)) {

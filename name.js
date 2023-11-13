@@ -1,18 +1,46 @@
 import { elementArray, lineArray, elementDictionary, lineDictionary, ElementObjectMatch } from "./main.js";
 
 export let Name = {
+    carboxylCarbons : [],
+    carbonylCarbons : [],
+    hydroxylCarbons : [],
 
-    hydrocarbon(length, carbonChains) {
+    hydrocarbon(length, carbonChains, hasMainFunctionalGroup = false, mainFunctionalGroupCarbons, exception, isBranch) {
+        let lowestNumberChain = this.hydrocarbonFilter(length, carbonChains, hasMainFunctionalGroup = false, mainFunctionalGroupCarbons)
+
+        return this.hydrocarbonName(lowestNumberChain, hasMainFunctionalGroup, exception, isBranch)
+    },
+
+    hydrocarbonFilter(length, carbonChains, hasMainFunctionalGroup = false, mainFunctionalGroupCarbons) {
         let doubleLines = lineArray.filter(l => {return l.bonds == 2})
         let tripleLines = lineArray.filter(l => {return l.bonds == 3})
-        let doubleLineCarbons = doubleLines.map(l => {return l.elementScan()})
-        let tripleLineCarbons = tripleLines.map(l => {return l.elementScan()})
+        let doubleLineCarbons = []
+        let tripleLineCarbons = []
         let multiLineCarbons = doubleLineCarbons.concat(tripleLineCarbons)
+
         let longestChains = carbonChains.filter(c => {return c.length == length}) //longest chain
-        
         let lowestLocantChains = longestChains
         
-        if (doubleLines.length > 0 || tripleLines > 0) { // not alkane
+        if (doubleLines.length > 0 || tripleLines.length > 0) { // not alkane
+            
+            if (doubleLines.length > 0) {
+                let temp = doubleLines.map(l => {return l.elementScan()})
+
+                for (const pair of temp) {
+                    if (doubleLineCarbons.some(p => {return p.every(c => {return pair.includes(c)})})) continue
+                    else doubleLineCarbons.push(pair)
+                }
+            }
+            
+            if (tripleLines.length > 0) {
+                let temp = tripleLines.map(l => {return l.elementScan()})
+
+                for (const pair of temp) {
+                    if (tripleLineCarbons.some(p => {return p.every(c => {return pair.includes(c)})})) continue
+                    else tripleLineCarbons.push(pair)
+                }
+            }
+
             let mostBondChains = longestChains
 
             if (longestChains.length > 2 && tripleLines.length > 0) {
@@ -39,7 +67,7 @@ export let Name = {
                 for (const chain of longestChains) { //chains with most double bonds
                     let i = 0
                 
-                    for (const pairs of doubleLineCarbons.concat(tripleLineCarbons)) {
+                    for (const pairs of doubleLineCarbons) {
                         if (pairs.every(c => chain.includes(c))) i++
                     }
                 
@@ -49,6 +77,27 @@ export let Name = {
                     } else if (i == maxDB && maxDB > 0) mostDoubleBondChains.push(chain)
                 }
 
+            }
+
+            if (hasMainFunctionalGroup) {
+                let temp = [...mostDoubleBondChains]
+                let LowestIndex = length
+                
+                for (const chain of temp) { //lowest hydroxyl number
+                    for (const carbon of chain) {
+                        if (!mainFunctionalGroupCarbons.includes(carbon)) continue
+        
+                        let index = chain.indexOf(carbon)
+                        
+                        if (index < LowestIndex)  {
+                            mostDoubleBondChains = [chain]
+                            LowestIndex = index
+                        } else if (index == LowestIndex)  {
+                            mostDoubleBondChains.push(chain)
+                        }
+                        break
+                    }
+                }
             }
 
             let lowestMultiLocantChains = mostDoubleBondChains
@@ -103,6 +152,28 @@ export let Name = {
             lowestLocantChains = lowestDoubleLocantChains
         }
 
+        if (doubleLines.length == 0 && tripleLines.length == 0 && hasMainFunctionalGroup) { 
+            let temp = [...lowestLocantChains]
+            let LowestIndex = length
+            
+            lowestLocantChains = []
+            for (const chain of temp) { //lowest hydroxyl number
+                for (const carbon of chain) {
+                    if (!mainFunctionalGroupCarbons.includes(carbon)) continue
+    
+                    let index = chain.indexOf(carbon)
+                    
+                    if (index < LowestIndex)  {
+                        lowestLocantChains = [chain]
+                        LowestIndex = index
+                    } else if (index == LowestIndex)  {
+                        lowestLocantChains.push(chain)
+                    }
+                    break
+                }
+            }
+        }
+
         let numberOfBranches = 0
         let mostBranchChains = lowestLocantChains
 
@@ -130,17 +201,16 @@ export let Name = {
             }
         }
 
-        return this.hydrocarbonName(lowestNumberChain)
+        return lowestNumberChain
     },
 
-    hydrocarbonName(lowestNumberChain, hasMainFunctionalGroup = false) {
+    hydrocarbonName(lowestNumberChain, hasMainFunctionalGroup = false, exception, isBranch) {
         let doubleLines = lineArray.filter(l => {return l.bonds == 2})
         let tripleLines = lineArray.filter(l => {return l.bonds == 3})
         let eneLocation = ''
         let yneLocation = ''
         let length = lowestNumberChain.length
         let addA = false
-        
         if (doubleLines.length > 0) {
             let locations = []
             let doubleLineCarbons = doubleLines.map(l => {return l.elementScan()})
@@ -184,7 +254,7 @@ export let Name = {
             }
         }
 
-        let branches = this.branch(lowestNumberChain)
+        let branches = this.branch(lowestNumberChain, exception, isBranch)
         let prefix = carbonPrefix(length)
         
         if (addA) prefix += "a"
@@ -215,7 +285,7 @@ export let Name = {
         return numberBranchNames.join('-') + prefix + main
     },
 
-    alcohol(length, carbonChains, oxygens) {
+    alcohol(carbonChains, oxygens) {
         let alcoholChains = []
         let hydroxylCarbons = []
 
@@ -224,6 +294,7 @@ export let Name = {
             hydroxylCarbons.push(carbon)
         }
 
+        this.hydroxylCarbons = hydroxylCarbons
         let maxAlcohol = 0
 
         for (const chain of carbonChains) { //has most hydroxyl groups
@@ -241,85 +312,15 @@ export let Name = {
         alcoholChains.sort((a, b) => {return b.length - a.length})
         let maxLength = alcoholChains[0].length
 
-        alcoholChains = alcoholChains.filter(c => {return c.length == maxLength})
-
-
-        let lowestHydroxylChains = []
-        let LowestIndex = length
-
-        for (const chain of alcoholChains) { //lowest hydroxyl number
-            for (const carbon of chain) {
-                if (!hydroxylCarbons.includes(carbon)) continue
-
-                let index = chain.indexOf(carbon)
-                
-                if (index < LowestIndex)  {
-                    lowestHydroxylChains = [chain]
-                    LowestIndex = index
-                } else if (index == LowestIndex)  {
-                    lowestHydroxylChains.push(chain)
-                }
-                break
-            }
-        }
-
-        if (lineDictionary[2] > 0 || lineDictionary[3] > 0) { //most multi bonds
-            let multiLines = lineArray.filter(l => {return l.bonds > 1})
-            let multiLineCarbons = multiLines.map(l => {return l.elementScan()})
-            let chains = []
-            let maxMB = 0
-    
-            for (const chain of lowestHydroxylChains) {
-                let i = 0
-    
-                for (const pairs of multiLineCarbons) {
-                    if (pairs.every(c => chain.includes(c))) i++
-                }
-    
-                if (i > maxMB) {
-                    maxMB = i
-                    chains = [chain]
-                } else if (i == maxMB) chains.push(chain)
-            }
-            lowestHydroxylChains = chains
-        }
-
-        let lowestBranchChains = lowestHydroxylChains
-        let branchIndex = length
-
-        for (const chain of lowestHydroxylChains) { //lowest branch number
-            for (const carbon of chain) {
-                if (!carbon.neighbourScan().some(c => {return c.name !== 'H' && c.name !== "O" && !chain.includes(c)})) continue
-                
-                if (chain.indexOf(carbon) < branchIndex)  {
-                    lowestBranchChains = [chain]
-                    branchIndex = chain.indexOf(carbon)
-                } else if (chain.indexOf(carbon) == branchIndex)  {
-                    lowestBranchChains.push(chain)
-                }
-                break
-            }
-        }
-        
-        let numberOfBranches = 0
-        let lowestNumberChain = lowestBranchChains[0]
-
-        for (const chain of lowestBranchChains) { //most number of branches
-            let branchLength = chain.map(carbon => {return carbon.neighbourScan().filter(c => {return c.name !== 'H' && c.name !== "O" && !chain.includes(c)}).length}).reduce((partialSum, a) => partialSum + a, 0)
-            if (branchLength > numberOfBranches) {
-                numberOfBranches = branchLength
-                lowestNumberChain = chain
-            }
-        }
-
-        let name = this.hydrocarbonName(lowestNumberChain, true)
+        let name = this.hydrocarbon(maxLength, lowestNumberChain, true, hydroxylCarbons)
         let locations = []
         let location = ''
         let prefix = numericalMultiplier(hydroxylCarbons.length)
 
-        if (maxLength > 1) {
+        if (maxLength > 2) {
             for (const carbon of hydroxylCarbons) {
-                locations.push(lowestNumberChain.indexOf(carbon) + 1)
+                let index = lowestNumberChain.indexOf(carbon)
+                if (index != -1) locations.push(index + 1)
             }
             locations.sort((a, b) => {return a - b})
             location = "-" + locations.join() + "-"
@@ -336,60 +337,41 @@ export let Name = {
             carboxylicAcids = carbonChains.filter(c => {return carboxylCarbons.includes(c[0])})
         } else {
             carboxylicAcids = carbonChains.filter(c => {return carboxylCarbons.includes(c[0]) && carboxylCarbons.includes(c[c.length - 1])})
+
         }
+        carboxylicAcids.sort((a, b) => {return b.length - a.length})
 
-        let maxLength = 0
-        let longestChains = []
+        let chain = this.hydrocarbonFilter(carboxylicAcids[0].length, carboxylicAcids, true, carboxylCarbons)
+        let number = 0
 
-        for (const chain of carboxylicAcids) {
-            if (chain.length > maxLength) {
-                longestChains = [chain]
-                maxLength = chain.length
-            }
-            else if (chain.length == maxLength) longestChains.push(chain)
-        }
-    
-        let lowestBranchChains = longestChains
-        let branchIndex = maxLength
+        if (carboxylCarbons.length > 2) {
+            number = chain.map(carbon => {return carbon.neighbourScan().filter(c => {return carboxylCarbons.includes(c)}).length}).reduce((partialSum, a) => partialSum + a, 0)
 
-        for (const chain of longestChains) { //lowest branch number
-            for (const carbon of chain) {
-                if (!carbon.neighbourScan().some(c => {return c.name !== 'H' && c.name !== "O" && !chain.includes(c)})) continue
-                
-                if (chain.indexOf(carbon) < branchIndex)  {
-                    lowestBranchChains = [chain]
-                    branchIndex = chain.indexOf(carbon)
-                } else if (chain.indexOf(carbon) == branchIndex)  {
-                    lowestBranchChains.push(chain)
-                }
-                break
-            }
-        }
-                
-        let numberOfBranches = 0
-        let lowestNumberChain = lowestBranchChains[0]
-
-        for (const chain of lowestBranchChains) { //most number of branches
-            let branchLength = chain.map(carbon => {return carbon.neighbourScan().filter(c => {return c.name !== 'H' && c.name !== "O" && !chain.includes(c)}).length}).reduce((partialSum, a) => partialSum + a, 0)
-            if (branchLength > numberOfBranches) {
-                numberOfBranches = branchLength
-                lowestNumberChain = chain
+            if (number > 2){
+                chain.pop()
+                chain.splice(0, 1)
             }
         }
 
-        let name = this.hydrocarbonName(lowestNumberChain, true)
-
-        if (carboxylCarbons.length == 1) {
-            name = name.slice(0, -1) + "oic acid"
-        } else name += "dioic acid"
+        let name = this.hydrocarbonName(chain, true)
+        
+        if (carboxylCarbons.length == 1) name = name.slice(0, -1) + "oic acid"
+        else if (carboxylCarbons.length == 2 || number == 2) name = name.slice(0, -1) + "dioic acid"
+        else {
+            let prefix = numericalMultiplier(number)
+            name += prefix + "carboxylic acid"
+        }
 
         return name
     },
 
-    alkyl(branch, startingElement, mainElement) {
+    ester() {
+
+    },
+
+    carbonBranch(branch, startingElement, mainElement, needsBracket) {
         let branchDictionary = {}
         let carbonChains = []
-        let carbonChain
 
         for (const element of branch) {
             branchDictionary[element.name] = (branchDictionary.hasOwnProperty(element.name))? branchDictionary[element.name] + 1: 1;
@@ -402,36 +384,22 @@ export let Name = {
             }
             carbonChains.sort((a, b) => {return b.length - a.length})
         } else carbonChains.push([startingElement].concat(...tracedElement))
-        console.log(carbonChains.map(c => {return c.length}));
 
-        carbonChain = carbonChains[0]
-
-        let number = carbonChain.length
-        let branches = Name.branch(carbonChain, mainElement)
-        let prefix
-        
-        prefix = carbonPrefix(number)
-
-        let branchNames = [...new Set(branches.map(b => {return b[0]}))]
-        let numberBranchNames = []
-        let hasBranch = false
-
-        branchNames.sort()
-        for (const name of branchNames) {
-            let numArray = []
-            for (const branch of branches) {
-                if (branch[0] == name) numArray.push(branch[1]) 
+        if (this.carboxylCarbons.length > 2) {
+            for (const chain of carbonChains) {
+                if (this.carboxylCarbons.includes(chain[chain.length - 1])) chain.pop()
             }
-            numArray.sort((a, b) => {return a - b})
-
-            numberBranchNames.push(numArray.join(', ')+ '-' + numericalMultiplier(numArray.length) + name)
-            hasBranch = true
         }
 
-        return (hasBranch)? '(' + numberBranchNames.join(' ') + prefix + 'yl)': numberBranchNames.join(' ') + prefix + 'yl'
+        let name = this.hydrocarbon(carbonChains[0].length, carbonChains, false, [], mainElement, true)
+
+        if (name[name.length - 3] == 'a') name = name.slice(0, -3) + 'yl'
+        else name = name.slice(0, -1) + 'yl'
+
+        return (needsBracket)? '(' + name + ')': name
     },
 
-    branch(carbonChain, exception) {
+    branch(carbonChain, exception, isBranch = false) {
         let branches = []
         let number = 1
 
@@ -442,8 +410,13 @@ export let Name = {
                 for (const branchStem of branchStems) {
                     switch (branchStem.name) {
                         case 'C':
+                            if (this.carboxylCarbons.includes(branchStem)) {
+                                if (isBranch) branches.push(['carboxy', number])
+                                break
+                            }
+
                             let branch = branchStem.trace([carbon])
-                            let name = Name.alkyl([branchStem].concat(branch), branchStem, carbon)
+                            let name = Name.carbonBranch([branchStem].concat(branch), branchStem, carbon, isBranch)
                             branches.push([name, number])
                             break;
                         case 'Cl':
@@ -454,6 +427,9 @@ export let Name = {
                             break;
                         case 'I':
                             branches.push(['iodo', number])
+                            break;
+                        case 'O':
+                            if (this.hydroxylCarbons.includes(carbon))branches.push(['hydroxy', number])
                             break;
                     }
                 }
