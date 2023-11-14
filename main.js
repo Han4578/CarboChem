@@ -692,23 +692,24 @@ export function refreshName() {
         let hydroxylCarbons = hydroxyls.map(o => {return o.neighbourScan().filter(c => {return c.name == "C"})[0]})
         let carbonylCarbons = carbonyls.map(c => {return c.neighbourScan()[0]})
         let carboxylCarbons = hydroxylCarbons.filter(c => {return carbonylCarbons.includes(c)})
+        let ethers = oxygens.filter(o => {return o.neighbourScan().length == 2 && o.neighbourScan().every(c => {return c.name == "C"})})
+        let esters = ethers.filter(o => {return o.neighbourScan().some(c => {return carbonylCarbons.includes(c)})})
 
         Name.hydroxylCarbons = hydroxylCarbons
         Name.carboxylCarbons = carboxylCarbons
         Name.carbonylCarbons = carbonylCarbons
+        Name.carbonyls = carbonyls
+        Name.hydroxyls = hydroxyls
+        Name.esters = esters
+        Name.ethers = ethers
 
         if (!oxygens.some(o => {return o.neighbourScan().some(e => {return ["O", "Cl", "Br", "I"].includes(e.name)})})) {
-            if (oxygens.length == hydroxyls.length) {
-                name = Name.alcohol(carbonChains, oxygens)
-            } else if (oxygens.some(o => {return o.neighbourScan().filter(e => e.name == "C").length > 1})) { //ether
-                
-            } else {
+            if (carboxylCarbons.length > 0) name = Name.carboxylicAcid(carbonChains, carboxylCarbons) // carboxylic acid
+            else if (esters.length > 0) name = Name.ester()                           //ester
+            else if (hydroxyls.length > 0) name = Name.alcohol(carbonChains, oxygens) //alcohol
+            else if (ethers.length > 0) name = name
+            else console.log("hi");
 
-
-                if (carboxylCarbons.length > 0) {
-                    name = Name.carboxylicAcid(carbonChains, carboxylCarbons)
-                }
-            }
         } else alert("Excluded structures detected, please check tutorial for more info (Excluded names).")
 
 

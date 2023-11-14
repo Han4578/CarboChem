@@ -4,6 +4,10 @@ export let Name = {
     carboxylCarbons : [],
     carbonylCarbons : [],
     hydroxylCarbons : [],
+    esters : [],
+    ethers : [],
+    hydroxyls : [],
+    carbonyls : [],
 
     hydrocarbon(length, carbonChains, hasMainFunctionalGroup = false, mainFunctionalGroupCarbons, exception, isBranch) {
         let lowestNumberChain = this.hydrocarbonFilter(length, carbonChains, hasMainFunctionalGroup = false, mainFunctionalGroupCarbons)
@@ -225,7 +229,7 @@ export let Name = {
             if (locations.length > 0) {
                 locations.sort((a, b) => {return a - b})
                 
-                if (length > 3 || (hasMainFunctionalGroup && length > 2) && locations.length > 0) eneLocation = "-" + locations.join() + "-"
+                if (length > 3 || (hasMainFunctionalGroup || isBranch && length > 2) && locations.length > 0) eneLocation = "-" + locations.join() + "-"
                 if (locations.length > 1) addA = true
                 
                 let enePrefix = numericalMultiplier(locations.length)
@@ -311,11 +315,11 @@ export let Name = {
 
         alcoholChains.sort((a, b) => {return b.length - a.length})
         let maxLength = alcoholChains[0].length
-
-        let name = this.hydrocarbon(maxLength, lowestNumberChain, true, hydroxylCarbons)
+        let lowestNumberChain = this.hydrocarbonFilter(maxLength, alcoholChains, true, hydroxylCarbons)
+        let name = this.hydrocarbonName(lowestNumberChain, true)
+        let prefix = numericalMultiplier(hydroxylCarbons.length)
         let locations = []
         let location = ''
-        let prefix = numericalMultiplier(hydroxylCarbons.length)
 
         if (maxLength > 2) {
             for (const carbon of hydroxylCarbons) {
@@ -366,24 +370,24 @@ export let Name = {
     },
 
     ester() {
+        if (this.esters.length == 1) {
+            let carboxylicSide = this.esters[0].neighbourScan().filter(c => {return this.carbonylCarbons.includes(c)})[0]
+            let alcoholSide = this.esters[0].neighbourScan().filter(c => {return !this.carbonylCarbons.includes(c)})[0]
 
+            let carbonChains = carbonTrace(carboxylicSide, this.esters[0])
+
+            let carboxylicName = this.hydrocarbon(carbonChains[0].length, carbonChains)
+            carboxylicName = carboxylicName.slice(0, -1) + "oate"
+
+            let branchName = this.carbonBranch(alcoholSide, this.esters[0])
+
+            return branchName + " " + carboxylicName 
+        }
     },
 
-    carbonBranch(branch, startingElement, mainElement, needsBracket) {
-        let branchDictionary = {}
-        let carbonChains = []
-
-        for (const element of branch) {
-            branchDictionary[element.name] = (branchDictionary.hasOwnProperty(element.name))? branchDictionary[element.name] + 1: 1;
-        }
-
-        let tracedElement = startingElement.carbonTrace(mainElement)
-        if (tracedElement.length > 1) {
-            for (const b of tracedElement) {
-                carbonChains.push([startingElement].concat(...b))
-            }
-            carbonChains.sort((a, b) => {return b.length - a.length})
-        } else carbonChains.push([startingElement].concat(...tracedElement))
+    carbonBranch(startingElement, mainElement, needsBracket = false) {
+        
+        let carbonChains = carbonTrace(startingElement, mainElement)
 
         if (this.carboxylCarbons.length > 2) {
             for (const chain of carbonChains) {
@@ -404,7 +408,7 @@ export let Name = {
         let number = 1
 
         for (const carbon of carbonChain) {
-            let branchStems = carbon.neighbourScan().filter(c => {return c.name !== 'H' && c.name !== "O" && !carbonChain.includes(c) && c !== exception})
+            let branchStems = carbon.neighbourScan().filter(c => {return c.name !== 'H' && !carbonChain.includes(c) && c !== exception})
 
             if (branchStems.length > 0) {
                 for (const branchStem of branchStems) {
@@ -415,8 +419,7 @@ export let Name = {
                                 break
                             }
 
-                            let branch = branchStem.trace([carbon])
-                            let name = Name.carbonBranch([branchStem].concat(branch), branchStem, carbon, isBranch)
+                            let name = Name.carbonBranch(branchStem, carbon, isBranch)
                             branches.push([name, number])
                             break;
                         case 'Cl':
@@ -429,7 +432,14 @@ export let Name = {
                             branches.push(['iodo', number])
                             break;
                         case 'O':
-                            if (this.hydroxylCarbons.includes(carbon))branches.push(['hydroxy', number])
+                            if (!this.carboxylCarbons.includes(carbon)){
+                                if (this.hydroxyls.includes(branchStem) && (this.carboxylCarbons.length > 0 || this.esters.length > 0 || isBranch))branches.push(['hydroxy', number])
+                                else if (this.carbonyls.includes(branchStem)) branches.push(["oxo", number])
+                                else if (branchStem.neighbourScan().length == 2) {
+                                    let name = this.oxy(branchStem, carbon)
+                                    branches.push([name, number])
+                                }
+                            }
                             break;
                     }
                 }
@@ -439,6 +449,31 @@ export let Name = {
         return branches
     },
 
+    oxy(oxygen, exception) {
+        let startingElement = oxygen.neighbourScan().filter(c => {return c !== exception})[0]
+        let name = this.carbonBranch(startingElement, oxygen)
+        name = name.slice(0, -1)
+
+        if (name[name.length - 3] !== 'a') name = name.slice(0, -1) + "oxy"
+        else name = name.slice(0, -3) + "oxy"
+
+        return name
+    }
+
+}
+
+function carbonTrace(startingElement, mainElement) {
+    let tracedElement = startingElement.carbonTrace(mainElement)
+    let carbonChains = []
+
+    if (tracedElement.length > 1) {
+        for (const b of tracedElement) {
+            carbonChains.push([startingElement].concat(...b))
+        }
+        carbonChains.sort((a, b) => {return b.length - a.length})
+    } else carbonChains.push([startingElement].concat(...tracedElement))
+
+    return carbonChains
 }
 
 function numericalMultiplier(number) {
