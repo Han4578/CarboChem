@@ -20,7 +20,6 @@ export class Element {
         this.rightBond = 0
         this.upperBond = 0
         this.lowerBond = 0
-        this.main = false
     }
 
     refreshLines(refreshClickable) {

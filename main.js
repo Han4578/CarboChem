@@ -647,13 +647,21 @@ export function refreshName() {
     let length = 0
     let carbonChains = []
     let carbons = elementArray.filter(e => {return e.name == 'C'})
-
+    
+    
     for (const element of elementArray) {
         if (element.leftBond + element.rightBond + element.upperBond + element.lowerBond !== element.bonds) {
             nameContainer.innerText = name
             return
         }
     }
+    
+    let doubleLines = lineArray.filter(l => {return l.bonds == 2})
+    let tripleLines = lineArray.filter(l => {return l.bonds == 3})
+
+    Name.doubleLineCarbons = doubleLines.map(l => {return l.elementScan()})
+    Name.tripleLineCarbons = tripleLines.map(l => {return l.elementScan()})
+
     elementDictionary = {}
     lineDictionary = {}
 
@@ -693,21 +701,28 @@ export function refreshName() {
         let carbonylCarbons = carbonyls.map(c => {return c.neighbourScan()[0]})
         let carboxylCarbons = hydroxylCarbons.filter(c => {return carbonylCarbons.includes(c)})
         let ethers = oxygens.filter(o => {return o.neighbourScan().length == 2 && o.neighbourScan().every(c => {return c.name == "C"})})
-        let esters = ethers.filter(o => {return o.neighbourScan().some(c => {return carbonylCarbons.includes(c)})})
+        let esters = ethers.filter(o => {return o.neighbourScan().filter(c => {return carbonylCarbons.includes(c)}).length == 1})
+        let anhydrides = ethers.filter(o => {return o.neighbourScan().filter(c => {return carbonylCarbons.includes(c)}).length == 2})
+        let esterCarbons = esters.map(e => {return e.neighbourScan().filter(c => {return carbonylCarbons.includes(c)})[0]})
+        let anhydrideCarbons = anhydrides.map(a => {return a.neighbourScan()}).flat()
 
         Name.hydroxylCarbons = hydroxylCarbons
         Name.carboxylCarbons = carboxylCarbons
         Name.carbonylCarbons = carbonylCarbons
+        Name.esterCarbons = esterCarbons
+        Name.anhydrideCarbons = anhydrideCarbons
         Name.carbonyls = carbonyls
         Name.hydroxyls = hydroxyls
         Name.esters = esters
+        Name.anhydrides = anhydrides
         Name.ethers = ethers
 
         if (!oxygens.some(o => {return o.neighbourScan().some(e => {return ["O", "Cl", "Br", "I"].includes(e.name)})})) {
             if (carboxylCarbons.length > 0) name = Name.carboxylicAcid(carbonChains, carboxylCarbons) // carboxylic acid
-            else if (esters.length > 0) name = Name.ester()                           //ester
+            else if (anhydrides.length > 0) name = Name.anhydride()                            //ester
+            else if (esters.length > 0) name = Name.ester()                            //ester
             else if (hydroxyls.length > 0) name = Name.alcohol(carbonChains, oxygens) //alcohol
-            else if (ethers.length > 0) name = name
+            else if (ethers.length > 0) name = Name.hydrocarbon(length, carbonChains, false, [], [], false)
             else console.log("hi");
 
         } else alert("Excluded structures detected, please check tutorial for more info (Excluded names).")
