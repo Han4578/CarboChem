@@ -1,9 +1,10 @@
 export let Name = {
+    carboxyls : [],
     carboxylCarbons : [],
     carbonylCarbons : [],
     hydroxylCarbons : [],
     esterCarbons : [],
-    anhydrideCarbons : [],
+    anhydrideOxygens : [],
     esters : [],
     ethers : [],
     hydroxyls : [],
@@ -11,6 +12,7 @@ export let Name = {
     anhydrides : [],
     doubleLineCarbons : [],
     tripleLineCarbons : [],
+    type: "",
 
     hydrocarbon(length, carbonChains, hasMainFunctionalGroup = false, mainFunctionalGroupCarbons, exception, isBranch) {
         let lowestNumberChain = this.hydrocarbonFilter(length, carbonChains, hasMainFunctionalGroup = false, mainFunctionalGroupCarbons)
@@ -288,6 +290,7 @@ export let Name = {
     },
 
     alcohol(carbonChains, oxygens) {
+        this.type = "Alcohol"
         let alcoholChains = []
         let hydroxylCarbons = []
 
@@ -333,6 +336,7 @@ export let Name = {
     },
 
     carboxylicAcid(carbonChains, carboxylCarbons) {
+        this.type = "Carboxylic acid"
         let carboxylicAcids = []
 
         if (carboxylCarbons.length == 1) {
@@ -368,6 +372,7 @@ export let Name = {
     },
 
     ester() {
+        this.type = "Ester"
         if (this.esters.length == 1) {
             let carboxylicSide = this.esters[0].neighbourScan().filter(c => {return this.carbonylCarbons.includes(c)})[0]
             let alcoholSide = this.esters[0].neighbourScan().filter(c => {return !this.carbonylCarbons.includes(c)})[0]
@@ -377,13 +382,16 @@ export let Name = {
 
             carboxylicName = carboxylicName.slice(0, -1) + "oate"
 
-            let branchName = this.carbonBranch(alcoholSide, this.esters[0]).slice(1, -1)
+            let branchName = this.carbonBranch(alcoholSide, this.esters[0])
+
+            if (branchName[0] == "(") branchName = branchName.slice(1, -1)
 
             return branchName + " " + carboxylicName 
         }
     },
 
     anhydride() {
+        this.type = "Anhydride"
         let names = []
         if (this.anhydrides.length == 1) {
             for (const carbon of this.anhydrides[0].neighbourScan()) {
@@ -454,14 +462,15 @@ export let Name = {
                             branches.push(['iodo', number])
                             break;
                         case 'O':
-                            if (!this.carboxylCarbons.includes(carbon) && !this.esterCarbons.includes(carbon) && !this.anhydrideCarbons.includes(carbon)){
-                                if (this.hydroxyls.includes(branchStem) && (this.carboxylCarbons.length > 0 || this.esters.length > 0 || isBranch))branches.push(['hydroxy', number])
-                                else if (this.carbonyls.includes(branchStem)) branches.push(["oxo", number])
-                                else if (this.ethers.includes(branchStem)) {
-                                    let name = this.oxy(branchStem, carbon)
-                                    branches.push([name, number])
-                                }
+                            if (this.carboxyls.includes(branchStem) || (this.type == "Ester" && this.esterCarbons.includes(carbon)) || (this.type == "Anhydride" && this.anhydrideOxygens.includes(branchStem))) break
+
+                            if (this.hydroxyls.includes(branchStem) && (this.carboxylCarbons.length > 0 || this.esters.length > 0 || isBranch))branches.push(['hydroxy', number])
+                            else if (this.carbonyls.includes(branchStem)) branches.push(["oxo", number])
+                            else if (this.ethers.includes(branchStem)) {
+                                let name = this.oxy(branchStem, carbon)
+                                branches.push([name, number])
                             }
+                            
                             break;
                     }
                 }
@@ -474,6 +483,8 @@ export let Name = {
     oxy(oxygen, exception) {
         let startingElement = oxygen.neighbourScan().filter(c => {return c !== exception})[0]
         let name = this.carbonBranch(startingElement, oxygen)
+        name = name.replace("(", "")
+        name = name.replace(")", "")
         name = name.slice(0, -1)
 
         if (name[name.length - 3] !== 'a') name = name.slice(0, -1) + "oxy"
