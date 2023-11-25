@@ -19,6 +19,7 @@ let minus = document.querySelector('.minus')
 let nameContainer = document.querySelector('.name')
 let copy = document.querySelector('.copy')
 let lineSelection = document.querySelectorAll('.line-selection')
+let sections = document.querySelectorAll('.section')
 let gridArray = []
 let RowArray = []
 export let elementDictionary = {}
@@ -852,6 +853,11 @@ function shrink() {
     checkScreenSize()
 }
 
+function toggleSection(e) {
+    let details = document.querySelector("#" + e.target.dataset.id)
+    details.classList.toggle("show")
+}
+
 for (const element of elementSelection) {
     element.addEventListener('click', () => {
         changeElementSelection(element.innerText, element.dataset.bond)
@@ -862,6 +868,10 @@ for (const element of lineSelection) {
     element.addEventListener('click', () => {
         changeLineSelection(element.dataset.bond)
     })
+}
+
+for (const section of sections) {
+    section.addEventListener('click', toggleSection)
 }
 
 

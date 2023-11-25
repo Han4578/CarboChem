@@ -74,82 +74,116 @@
     <div class="name-container"><div class="empty"></div><span class="name"></span><button class="copy"><img src="./images/copy.webp" alt=""></button></div>
     <div class="darken">
         <div class="tutorial">
-            <div>Welcome to CarboChem!</div><br>
+            <div class="intro">
+                <div>
+                    <div>Welcome to CarboChem!</div><br>
+                    <div>Here, you can build any carbon based chemical structures your want!</div>
+                    <br>
+                </div>
+            </div>
 
-            <div>Here, you can build any carbon based chemical structures your want!</div><br>
-            
-            <u>Reset Button</u>
-            <div>Resets the game.</div><br>
-            
-            <u>Blue lines</u>
-            <div>Indicate where you can add an element, click on them to add one.</div><br>
+            <div class="section" data-id="S1">
+                <div>Tutorial</div>
+            </div>
+            <div class="details" id="S1">
+                <div>
+                    <u>Reset Button</u>
+                    <div>Resets the game.</div>
+                        <br>
+                    <u>Blue lines</u>
+                    <div>Indicate where you can add an element, click on them to add one.</div>
+                        <br>
+                    <u>Element Button</u>
+                    <div>Switch elements to add</div>
+                        <br>
+                    <u>Bond Button</u>
+                    <div>Change number of bonds to add</div>
+                        <br>
+                    <u>Auto Button</u>
+                    <div>Adds a hydrogen element onto every blue line.
+                        <br>Note: Be patient as it'll always be faster than manually clicking all of it.</div>
+                        <br>
+                    <u>Delete Button</u>
+                    <div>Toggles delete mode.
+                        <br>In delete mode, the outermost elements and the last carbon in the carbon chain are marked as red. Click on them to delete it.</div>
+                        <br>
+                    <u>Zoom</u>
+                    <div>Click on the + and - to change element size</div>
+                        <br>
+                </div>
+            </div>
 
-            <u>Element Button</u>
-            <div>Switch elements to add</div><br>
+            <div class="section" data-id="S2">
+                <div>Rules</div>
+            </div>
+            <div class="details" id="S2">
+                <div>
+                    <div>Carbons can have 4 bonds. </div>
+                    <div>Oxygens can have 2 bonds. </div>
+                    <div>Hydrogen and halogens can have 1 bond. </div>
+                </div>
+            </div>
 
-            <u>Bond Button</u>
-            <div>Change number of bonds to add</div><br>
+            <div class="section" data-id="S3">
+                <div>Shortcut keys</div>
+            </div>
+            <div class="details" id="S3">
+                <div>
+                    <div>C - Carbon</div>
+                    <div>H - Hydrogen</div>
+                    <div>O - Oxygen</div>
+                    <div>L - Chlorine</div>
+                    <div>B - Bromine</div>
+                    <div>I - Iodine</div>
+                    <div></div>
+                    <div>R - Reset</div>
+                    <div>A - Auto</div>
+                    <div>D - Delete</div>
+                    <div></div>
+                    <div>1 - Single Bond</div>
+                    <div>2 - Double Bond</div>
+                    <div>3 - Triple Bond</div>
+                </div>
+            </div>
 
-            <u>Auto Button</u>
-            <div>Adds a hydrogen element onto every blue line.<br>Note: Be patient as it'll always be faster than manually clicking all of it.</div><br>
-            
-            <u>Delete Button</u>
-            <div>Toggles delete mode.<br>In delete mode, the outermost elements and the last carbon in the carbon chain are marked as red. Click on them to delete it.</div><br>
-            
-            <u>Zoom</u>
-            <div>Click on the + and - to change element size</div><br>
-
-            <u>Rules</u>
-            <div>Carbons can have 4 bonds. </div>
-            <div>Oxygens can have 2 bonds. </div>
-            <div>Hydrogen and halogens can have 1 bond. </div><br>
-
-            <u>Shortcut keys</u>
-            <div>C - Carbon</div>
-            <div>H - Hydrogen</div>
-            <div>O - Oxygen</div>
-            <div>L - Chlorine</div>
-            <div>B - Bromine</div>
-            <div>I - Iodine</div>
-            <div></div>
-            <div>R - Reset</div>
-            <div>A - Auto</div>
-            <div>D - Delete</div>
-            <div></div>         
-            <div>1 - Single Bond</div>            
-            <div>2 - Double Bond</div>            
-            <div>3 - Triple Bond</div><br>
-
-            <u>Naming</u>
-            <div>When the structure is complete, its name will be automatically generated. This currently only applies to:</div>
-            <div>Alkane</div>
-            <div>Alkene</div>
-            <div>Alkyne</div>
-            <div>Alcohol</div>
-            <div>Carboxylic acid</div>
-            <div>Esters</div>
-            <div>Ethers</div>
-            <div>Anhydrides</div>
-            <div>*Combination of different functional groups also works, but not all</div><br>
-
-            <div>Excluded names:</div>
-            <div>2 or more oxygen atoms forming bonds together</div>
-            <div>Oxygen forming bonds with halogens</div>
-            <div>*They exist but were excluded due to being non-carbon based structures</div><br>
-
-            <u>A general guide on how to choose the main carbon chain</u>
-            <div>The main carbon chain is determined using these steps in sequence:</div>
-            <ol>
-                <li>It has the most number of substituents corresponding to the suffix (OH for alcohol, COOH for carboxylic acid, etc)</li>
-                <li>It is the longest chain regardless of double or triple bonds</li>
-                <li>It has the most double and triple bonds</li>
-                <li>It has the most double bonds</li>
-                <li>It has the lowest double or triple bond number</li>
-                <li>It has the lowest double bond number</li>
-                <li>It has the most branches (chloro-, methyl-, etc)</li>
-                <li>It has the lowest branch number</li>
-                <a target="_blank" href="https://chemistry.stackexchange.com/questions/134568/when-we-name-an-organic-compound-if-there-is-double-bond-and-a-functional-group">Citation</a>
-            </ol>
+            <div class="section" data-id="S4">
+                <div>Naming</div>
+            </div>
+            <div class="details" id="S4">
+                <div>
+                    <div>When the structure is complete, its name will be automatically generated. This currently only applies to:</div>
+                    <div>Alkane</div>
+                    <div>Alkene</div>
+                    <div>Alkyne</div>
+                    <div>Alcohol</div>
+                    <div>Carboxylic acid</div>
+                    <div>Esters</div>
+                    <div>Ethers</div>
+                    <div>Anhydrides</div>
+                    <div>Aldehydes</div>
+                    <div>Ketones</div>
+                    <div>*Combination of different functional groups also works, but not all</div>
+                    <br>
+                    <div>Excluded names:</div>
+                    <div>2 or more oxygen atoms forming bonds together</div>
+                    <div>Oxygen forming bonds with halogens</div>
+                    <div>*They exist but were excluded due to being non-carbon based structures</div>
+                    <br>
+                    <u>A general guide on how to choose the main carbon chain</u>
+                    <div>The main carbon chain is determined using these steps in sequence:</div>
+                    <ol>
+                        <li>It has the most number of substituents corresponding to the suffix (OH for alcohol, COOH for carboxylic acid, etc)</li>
+                        <li>It is the longest chain regardless of double or triple bonds</li>
+                        <li>It has the most double and triple bonds</li>
+                        <li>It has the most double bonds</li>
+                        <li>It has the lowest double or triple bond number</li>
+                        <li>It has the lowest double bond number</li>
+                        <li>It has the most branches (chloro-, methyl-, etc)</li>
+                        <li>It has the lowest branch number</li>
+                        <a target="_blank" href="https://chemistry.stackexchange.com/questions/134568/when-we-name-an-organic-compound-if-there-is-double-bond-and-a-functional-group">Citation</a>
+                    </ol>
+                </div>
+            </div>
         </div>
     </div>
 </body>
