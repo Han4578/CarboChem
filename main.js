@@ -664,7 +664,7 @@ export function ElementObjectMatch(element) {
     return elementArray.filter(e => {return e.element == element})[0]    
 }
 
-export function refreshName() {
+export async function refreshName() {
     let name = '-'
     let length = 0
     let carbonChains = []
@@ -730,6 +730,8 @@ export function refreshName() {
             let anhydrides = ethers.filter(o => {return o.neighbourScan().filter(c => {return carbonylCarbons.includes(c)}).length == 2})
             let esterCarbons = esters.map(e => {return e.neighbourScan().filter(c => {return carbonylCarbons.includes(c)})[0]})
             let anhydrideCarbons = anhydrides.map(a => {return a.neighbourScan()}).flat()
+            let aldehydes = carbonylCarbons.filter(c => {return c.neighbourScan().some(h => {return h.name == "H"})})
+            let ketones = carbonylCarbons.filter(c => {return !aldehydes.includes(c)})
             let carboxyls = []
 
             for (const carbon of carboxylCarbons) {
@@ -743,21 +745,25 @@ export function refreshName() {
                 Name.anhydrideOxygens.push(carbon.neighbourScan().filter(o => {return carbonyls.includes(o)})[0])
             }
     
-            Name.hydroxylCarbons = hydroxylCarbons
+            Name.aldehydes = aldehydes
+            Name.anhydrides = anhydrides
             Name.carboxyls = carboxyls
             Name.carboxylCarbons = carboxylCarbons
+            Name.carbonyls = carbonyls
             Name.carbonylCarbons = carbonylCarbons
             Name.esterCarbons = esterCarbons
-            Name.carbonyls = carbonyls
             Name.hydroxyls = hydroxyls
+            Name.hydroxylCarbons = hydroxylCarbons
+            Name.ketones = ketones
             Name.esters = esters
-            Name.anhydrides = anhydrides
             Name.ethers = ethers
 
-            if (carboxylCarbons.length > 0) name = Name.carboxylicAcid(carbonChains, carboxylCarbons) // carboxylic acid
-            else if (anhydrides.length > 0) name = Name.anhydride()                            //ester
+            if (carboxylCarbons.length > 0) name = Name.carboxylicAcid(carbonChains) // carboxylic acid
+            else if (anhydrides.length > 0) name = Name.anhydride()                    //ester
             else if (esters.length > 0) name = Name.ester()                            //ester
-            else if (hydroxyls.length > 0) name = Name.alcohol(carbonChains, oxygens) //alcohol
+            else if (aldehydes.length > 0) name = Name.aldehyde(carbonChains)                      //aldehyde
+            else if (ketones.length > 0) name = Name.ketone(carbonChains)                         //ketone
+            else if (hydroxyls.length > 0) name = Name.alcohol(carbonChains) //alcohol
             else if (ethers.length > 0) {
                 Name.type = "Ether"
                 name = Name.hydrocarbon(length, carbonChains, false, [], [], false)
