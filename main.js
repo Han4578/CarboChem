@@ -269,22 +269,44 @@ export function checkAllForBlockage(newObj = undefined) {
 
         let doubleChildrenGrids = gridArray.filter(g => {return g.children.length == 2})
 
-        for (const grid of doubleChildrenGrids) { //check if element overlaps with line
-            let line = [...grid.children].filter(c => {return c.classList.contains('multi')})[0]
-            let element = [...grid.children].filter(c => {return c.classList.contains('element')})
+        for (const grid of doubleChildrenGrids) { //check for overlaps with lines and elements
+            if (Array.from(grid.children).every(e => {return e.classList.contains('element')})) {
+                let elemObj1 = ElementObjectMatch(grid.children[0])
+                let elemObj2 = ElementObjectMatch(grid.children[1])
 
-            if (element == []) continue
-            let lineObj = lineObjectMatch(line)
-            let connectedElementObj = lineObj.parent
+                let parent1 = elemObj1.neighbourScan()[0]
+                let parent2 = elemObj2.neighbourScan()[0]
 
-            if (lineObj.orientation == 'v') {
-                move('right', [connectedElementObj], 2)
-                connectedElementObj.backTrace('right', connectedElementObj)
-
+                if (parent1.x > parent2.x) {
+                    move("right", [elemObj1], 2)
+                    elemObj1.backTrace("right", elemObj1)
+                } else if (parent1.x < parent2.x) {
+                    move("right", [elemObj2], 2)
+                    elemObj2.backTrace("right", elemObj2)
+                } else if (parent1.y > parent2.y) {
+                    move("down", [elemObj1], 2)
+                    elemObj1.backTrace("down", elemObj1)
+                } else if (parent1.y < parent2.y) {
+                    move("down", [elemObj2], 2)
+                    elemObj2.backTrace("down", elemObj2)
+                } 
             } else {
-                move('down', [connectedElementObj], 2)
-                connectedElementObj.backTrace('down', connectedElementObj)
+                let line = [...grid.children].filter(c => {return c.classList.contains('multi')})[0]
+                let element = [...grid.children].filter(c => {return c.classList.contains('element')})
 
+                if (element == []) continue
+                let lineObj = lineObjectMatch(line)
+                let connectedElementObj = lineObj.parent
+
+                if (lineObj.orientation == 'v') {
+                    move('right', [connectedElementObj], 2)
+                    connectedElementObj.backTrace('right', connectedElementObj)
+
+                } else {
+                    move('down', [connectedElementObj], 2)
+                    connectedElementObj.backTrace('down', connectedElementObj)
+
+                }
             }
             hasChanged = true
             refreshAllLines()
