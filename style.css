@@ -26,15 +26,50 @@ img {
     padding: 0 50px;
     align-items: center;
     background-color: #a0a0a0;
-    font-size: 48px;
+    font-size: 3rem;
 }
 
-.question, .emptyq {
+.question, .more {
+    height: 5vh;
+}
+
+.more-menu {
+    background-color: #eeeeee;
+    width: 20vw;
+    height: 50vh;
+    position: absolute;
+    top: 25vh;
+    left: 1vw;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 5vh;
+    padding: 1%;
+    z-index: 3;
+    pointer-events: none;
+    filter: opacity(0);
+}
+
+.more-menu > div {
+    flex: 0 0 5vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+[data-main] {
     height: 5vh;
     aspect-ratio: 1;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
 }
+ [data-main] > img {
+    height: 80%;
+ }
 
-.question:hover {
+.question:hover, .more:hover {
     filter: brightness(0.5);
 }
 
@@ -139,7 +174,7 @@ img {
     align-items: center;
 }
 
-.action-bar > *:hover, .element-selection:hover, .line-selection:hover, .plus:hover, .minus:hover, .section:hover {
+.action-bar > *:hover, .element-selection:hover, .line-selection:hover, .plus:hover, .minus:hover, .section:hover,  [data-main]:hover {
     filter: brightness(0.8);
 }
 
@@ -373,4 +408,8 @@ div.selected {
 
 .greyed:hover {
     filter: brightness(1);
+}
+
+.highlight {
+    background-color: rgb(255, 255, 0);
 }

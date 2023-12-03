@@ -13,6 +13,8 @@ let lineButton = document.querySelector('.line-button')
 let lineMenu = document.querySelector('.line-menu')
 let darken = document.querySelector('.darken')
 let question = document.querySelector('.question')
+let more = document.querySelector('.more')
+let moreMenu = document.querySelector('.more-menu')
 let tutorial = document.querySelector('.tutorial')
 let plus = document.querySelector('.plus')
 let minus = document.querySelector('.minus')
@@ -20,11 +22,13 @@ let nameContainer = document.querySelector('.name')
 let copy = document.querySelector('.copy')
 let lineSelection = document.querySelectorAll('.line-selection')
 let sections = document.querySelectorAll('.section')
+let main = document.querySelector("[data-main-button]")
 let gridArray = []
 let RowArray = []
 export let elementDictionary = {}
 export let lineDictionary = {}
 export let deleteMode = false
+export let highlight = false
 export let lineArray = []
 export let elementArray = []
 export let selectedElement = 'C'
@@ -666,18 +670,27 @@ export function ElementObjectMatch(element) {
 }
 
 export async function refreshName() {
+    let type = document.querySelector("[data-type]")
+    let formula = document.querySelector("[data-formula]")
     let name = '-'
     let length = 0
     let carbonChains = []
     let carbons = elementArray.filter(e => {return e.name == 'C'})
+    let hasHighlight = highlight
+    formula.innerText = "-"
+    Name.type = "-"
+    Name.main = []
     
     
     for (const element of elementArray) {
         if (element.leftBond + element.rightBond + element.upperBond + element.lowerBond !== element.bonds) {
             nameContainer.innerText = name
+            type.innerText = "-"
+            formula.innerText = "-"
             return
         }
     }
+    if (hasHighlight) highlightMain()
     
     let doubleLines = lineArray.filter(l => {return l.bonds == 2})
     let tripleLines = lineArray.filter(l => {return l.bonds == 3})
@@ -715,8 +728,13 @@ export async function refreshName() {
     }
 
     if (!elementDictionary.hasOwnProperty('O')) {
-        Name.type = "Hydrocarbon"
-        name = Name.hydrocarbon(length, carbonChains)
+        if (lineDictionary[2] > 0 && lineDictionary[3] > 0) Name.type = "Enyne"
+        else if (lineDictionary[2] > 0) Name.type = "Alkene"
+        else if (lineDictionary[3] > 0) Name.type = "Alkyne"
+        else Name.type = "Alkane"
+        let chain = Name.hydrocarbonFilter(length, carbonChains, false, [])
+        name = Name.hydrocarbonName(chain, false, [], false)
+        Name.main = chain
     } else {
         let oxygens = elementArray.filter(e => {return e.name == "O"})
         if (!oxygens.some(o => {return o.neighbourScan().some(e => {return ["O", "Cl", "Br", "I"].includes(e.name)})})) {
@@ -725,7 +743,7 @@ export async function refreshName() {
             let carbonyls = oxygens.filter(o => {return o.neighbourScan().length == 1 && o.neighbourScan()[0].name == "C"})
             let hydroxylCarbons = hydroxyls.map(o => {return o.neighbourScan().filter(c => {return c.name == "C"})[0]})
             let carbonylCarbons = carbonyls.map(c => {return c.neighbourScan()[0]})
-            let carboxylCarbons = [...new Set(hydroxylCarbons.filter(c => {return carbonylCarbons.includes(c)}))]
+            let carboxylCarbons = [...new Set(hydroxylCarbons)].filter(c => {return carbonylCarbons.includes(c)})
             let ethers = oxygens.filter(o => {return o.neighbourScan().length == 2 && o.neighbourScan().every(c => {return c.name == "C"})})
             let esters = ethers.filter(o => {return o.neighbourScan().filter(c => {return carbonylCarbons.includes(c)}).length == 1})
             let anhydrides = ethers.filter(o => {return o.neighbourScan().filter(c => {return carbonylCarbons.includes(c)}).length == 2})
@@ -733,6 +751,7 @@ export async function refreshName() {
             let anhydrideCarbons = anhydrides.map(a => {return a.neighbourScan()}).flat()
             let aldehydes = carbonylCarbons.filter(c => {return c.neighbourScan().some(h => {return h.name == "H"})})
             let ketones = carbonylCarbons.filter(c => {return !aldehydes.includes(c)})
+            let carbonates = [...new Set(esterCarbons)].filter(c => {return c.neighbourScan().filter(o => {return esters.includes(o)}).length > 1})
             let carboxyls = []
 
             for (const carbon of carboxylCarbons) {
@@ -750,6 +769,7 @@ export async function refreshName() {
             Name.anhydrides = anhydrides
             Name.carboxyls = carboxyls
             Name.carboxylCarbons = carboxylCarbons
+            Name.carbonates = carbonates
             Name.carbonyls = carbonyls
             Name.carbonylCarbons = carbonylCarbons
             Name.esterCarbons = esterCarbons
@@ -759,23 +779,36 @@ export async function refreshName() {
             Name.esters = esters
             Name.ethers = ethers
 
-            if (carboxylCarbons.length > 0) name = Name.carboxylicAcid(carbonChains) // carboxylic acid
+            if (carbonates.length > 0) name = Name.carbonate() // carboxylic acid
+            else if (carboxylCarbons.length > 0) name = Name.carboxylicAcid(carbonChains) // carboxylic acid
             else if (anhydrides.length > 0) name = Name.anhydride()                    //ester
             else if (esters.length > 0) name = Name.ester()                            //ester
-            else if (aldehydes.length > 0) name = Name.aldehyde(carbonChains)                      //aldehyde
+            else if (aldehydes.length > 0) name = Name.aldehyde(carbonChains)          //aldehyde
             else if (ketones.length > 0) name = Name.ketone(carbonChains)                         //ketone
             else if (hydroxyls.length > 0) name = Name.alcohol(carbonChains) //alcohol
             else if (ethers.length > 0) {
                 Name.type = "Ether"
-                name = Name.hydrocarbon(length, carbonChains, false, [], [], false)
+                let chain = Name.hydrocarbonFilter(length, carbonChains, false, [])
+                name = Name.hydrocarbonName(chain, false, [], false)
+                Name.main = chain
             }
 
         } else alert("Excluded structures detected, please check tutorial for more info (Excluded names).")
-
-
     }
 
+    let array = []
+
+    for (const key in elementDictionary) {
+        const number = elementDictionary[key];
+        array.push((number > 1)? key + "<sub>" + number + "</sub>": key)
+    }
+
+    array.sort()
+
+    if (hasHighlight) highlightMain()
     nameContainer.innerText = name
+    type.innerText = Name.type
+    formula.innerHTML = array.join("")
 }
 
 
@@ -785,6 +818,9 @@ window.addEventListener('resize', checkScreenSize)
 deleteButton.addEventListener('click', changeDelete)
 plus.addEventListener('click', zoom)
 minus.addEventListener('click', shrink)
+more.addEventListener('click', () => {
+    moreMenu.classList.toggle("show")
+})
 question.addEventListener('click', () => {
     darken.classList.toggle('show')
 })
@@ -820,6 +856,16 @@ copy.addEventListener("click", () => {
 copy.addEventListener("mouseout", () => {
     copy.classList.remove("green")
 })
+
+main.addEventListener("click", highlightMain)
+
+export function highlightMain() {
+    for (const element of Name.main) {
+        element.element.classList.toggle("highlight")
+    }
+    main.src = (main.src.includes("hide.png"))? "images/show.png" : "images/hide.png"
+    highlight = !highlight
+}
 
 function zoom() {
     if (gridSize == 20) {
