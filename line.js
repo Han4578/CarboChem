@@ -55,7 +55,7 @@ export class Line {
 
         lineObj.element.classList.remove('clickable')
         lineObj.element.removeEventListener('click', lineObj.addElement)
-        if (selectedElement.bonds == 1) {
+        if (selectedElementBonds == 1) {
             newObj.displayElement()
         } else {
             removeClickableLines()

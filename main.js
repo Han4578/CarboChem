@@ -648,17 +648,15 @@ function autoFillHydrogen() {
     changeLineSelection(1)
 
     while (hasChanged) {
-        hasChanged = false
         let clickableLines = lineArray.filter(l => {return l.scan().filter(g => {return g.children.length == 0}).length == 1})
+        hasChanged = false
         if (clickableLines.length > 0) {
             clickableLines[0].addElement()
-            refreshOuterLines()
             hasChanged = true
         }
     }
     changeElementSelection(originalElement, originalElementBond)
     changeLineSelection(originalLineBond)
-
 }
 
 export function lineObjectMatch(element) {
@@ -860,7 +858,8 @@ copy.addEventListener("mouseout", () => {
 main.addEventListener("click", highlightMain)
 
 export function highlightMain() {
-    for (const element of Name.main) {
+    let elements = [...new Set(Name.main)]
+    for (const element of elements) {
         element.element.classList.toggle("highlight")
     }
     main.src = (main.src.includes("hide.png"))? "images/show.png" : "images/hide.png"
