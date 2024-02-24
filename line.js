@@ -1,6 +1,6 @@
-import { selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage, selectedLineBonds, removeClickableLines, lineArray, retractElements, refreshAllLines, refreshName} from "./main.js"
+import { cycloMode, selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage, selectedLineBonds, removeClickableLines, lineArray, retractElements, refreshAllLines, refreshName} from "./main.js"
 import { Element } from "./element.js"
-
+import { Cyclo } from "./cyclo.js"
 export class Line {
     constructor(orientation, location, bonds, parent) {
         this.orientation = orientation
@@ -18,33 +18,39 @@ export class Line {
         let newGrid = sideGrids.filter(g => {return g.children.length == 0})[0]
 
         let oldObj = ElementObjectMatch(oldGrid.children[0])
-        let newObj = new Element(selectedElement, newGrid, selectedElementBonds);
+        let newObj
+        
+        if (!cycloMode) newObj = new Element(selectedElement, newGrid, selectedElementBonds);
 
         if (parseInt(newGrid.dataset.x) > lineObj.x) { // old left new right
+            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x) + 3, parseInt(newGrid.dataset.y), "h", oldObj)
             oldObj.checkForExpansion(newObj, 'right')
-
+            console.log(newObj);
             oldObj.right = newObj
             newObj.left = oldObj
             oldObj.rightBond = selectedLineBonds
             newObj.leftBond = selectedLineBonds
-        }
-        if (parseInt(newGrid.dataset.x) < lineObj.x) { // new left old right
+        } else if (parseInt(newGrid.dataset.x) < lineObj.x) { // new left old right
+            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x) - 3, parseInt(newGrid.dataset.y), "h", oldObj)
+
             oldObj.checkForExpansion(newObj, 'left')
 
             oldObj.left = newObj
             newObj.right = oldObj
             oldObj.leftBond = selectedLineBonds
             newObj.rightBond = selectedLineBonds
-        }
-        if (parseInt(newGrid.dataset.y) > lineObj.y) { // old up new down
+        } else if (parseInt(newGrid.dataset.y) > lineObj.y) { // old up new down
+            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x), parseInt(newGrid.dataset.y) + 2, "v", oldObj)
+
             oldObj.checkForExpansion(newObj, 'down')
 
             oldObj.down = newObj
             newObj.up = oldObj
             oldObj.lowerBond = selectedLineBonds
             newObj.upperBond = selectedLineBonds
-        }
-        if (parseInt(newGrid.dataset.y) < lineObj.y)  { // new up old down
+        } else if (parseInt(newGrid.dataset.y) < lineObj.y)  { // new up old down
+            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x), parseInt(newGrid.dataset.y) - 2, "v", oldObj)
+
             oldObj.checkForExpansion(newObj, 'up')
 
             oldObj.up = newObj
@@ -57,6 +63,12 @@ export class Line {
         lineObj.element.removeEventListener('click', lineObj.addElement)
         if (selectedElementBonds == 1) {
             newObj.displayElement()
+            if (oldObj.bonds == oldObj.lowerBond + oldObj.upperBond + oldObj.leftBond + oldObj.rightBond) {
+                let clickableLines = lineArray.filter(l => {return l.parent == oldObj && l.element.classList.contains("clickable")})
+                for (const line of clickableLines) {
+                    line.delete()
+                }
+            }
         } else {
             removeClickableLines()
             checkAllForBlockage(newObj)

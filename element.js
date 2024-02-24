@@ -1,6 +1,5 @@
 import { Line } from "./line.js"
 import { lineArray, locateGrid, refreshClickableLines, newLine, elementArray, move, refreshAllLines, ElementObjectMatch, lineObjectMatch, refreshDeletion, selectedLineBonds, trimEdges, checkAllForBlockage, deleteMode, changeDelete, refreshName, highlight, highlightMain} from "./main.js"
-
 export class Element {
     constructor(name, location, bonds) {
         this.name = name

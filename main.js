@@ -1,10 +1,11 @@
-import { Element } from "./element.js"
 import { Line } from "./line.js"
+import { Element } from "./element.js"
 import { Name } from "./name.js"
 
 let container = document.querySelector('.container')
 let resetButton = document.querySelector('.reset')
 let autoButton = document.querySelector('.auto')
+let cycloButton = document.querySelector('.cyclo')
 let deleteButton = document.querySelector('.delete')
 let elementButton = document.querySelector('.element-button')
 let elementMenu = document.querySelector('.element-menu')
@@ -23,27 +24,31 @@ let copy = document.querySelector('.copy')
 let lineSelection = document.querySelectorAll('.line-selection')
 let sections = document.querySelectorAll('.section')
 let main = document.querySelector("[data-main-button]")
-let gridArray = []
-let RowArray = []
+export let gridArray = []
+export let rowArray = []
 export let elementDictionary = {}
 export let lineDictionary = {}
 export let deleteMode = false
+export let cycloMode = false
 export let highlight = false
 export let lineArray = []
+export let cycloArray = []
 export let elementArray = []
+export let cycloElementArray = []
 export let selectedElement = 'C'
 export let selectedElementBonds = 4
 export let selectedLineBonds = 1
+export let gridSize = 50
 let columnNum = 5
 let rowNum = 5
-let gridSize = 50
 
 function reset() { 
     container.innerHTML = ''
     gridArray = []
-    RowArray = []
+    rowArray = []
     lineArray = []
     elementArray = []
+    cycloElementArray = []
     columnNum = 5
     rowNum = 5
     changeElementSelection('C', 4)
@@ -84,16 +89,14 @@ function addRow(c) {
     const row = document.createElement('div');
 
     row.classList.add('row')
-    row.dataset.row = RowArray.length + 1
+    row.dataset.row = rowArray.length + 1
 
     c.appendChild(row)
-    RowArray.push(row)
+    rowArray.push(row)
     return row
 }
 
-export function locateGrid(x, y) {
-    return gridArray.filter(g => {return parseInt(g.dataset.x) == x && parseInt(g.dataset.y) == y})[0]
-}
+export function locateGrid(x, y) {return gridArray.filter(g => {return parseInt(g.dataset.x) == x && parseInt(g.dataset.y) == y})[0]}
 
 export function refreshClickableLines() {
     for (const lineObj of lineArray) {
@@ -378,7 +381,7 @@ export function checkAllForBlockage(newObj = undefined) {
 export function newLine(direction, n = 1) {
     if (direction == 'left' || direction == 'right') {
         for (let i = 0; i < n; i++) {            
-            for (const row of RowArray) {
+            for (const row of rowArray) {
                 addGrid(row)
             }
             columnNum++
@@ -503,13 +506,14 @@ function changeLineSelection(bond) {
 export function changeDelete() {
     deleteButton.classList.toggle('selected')
     deleteMode = !deleteMode
-    if (deleteMode) { //turn off
+    if (deleteMode) { //turn on
+        if (cycloMode) changeCyclo()
         for (const lineObj of lineArray) {
             lineObj.element.removeEventListener('click', lineObj.addElement)
             lineObj.element.classList.remove('clickable')
         }
         refreshDeletion()
-    } else { //turn on
+    } else { //turn off
         let deletableElements = elementArray.filter(e => {return e.element.classList.contains("deletable")})
         for (const elemObj of deletableElements) {
             elemObj.element.classList.remove('deletable')
@@ -521,6 +525,14 @@ export function changeDelete() {
             }
         }
         refreshClickableLines()
+    }
+}
+
+export function changeCyclo() {
+    cycloButton.classList.toggle('selected')
+    cycloMode = !cycloMode
+    if (cycloMode) { //turn on
+        if (deleteMode) changeDelete()
     }
 }
 
@@ -579,61 +591,61 @@ export function retractElements() {
 
 export function trimEdges() {
     if (gridArray.length <= 25) return
-    let thirdColumn = RowArray.map(r => {return r.children[2]})
-    let thirdLastColumn = RowArray.map(r => {return r.children[r.children.length - 3]})
-    let thirdRow = [...RowArray[2].children]
-    let thirdLastRow = [...RowArray[RowArray.length - 3].children]
+    let thirdColumn = rowArray.map(r => {return r.children[2]})
+    let thirdLastColumn = rowArray.map(r => {return r.children[r.children.length - 3]})
+    let thirdRow = [...rowArray[2].children]
+    let thirdLastRow = [...rowArray[rowArray.length - 3].children]
 
     while (thirdLastColumn.filter(g => {return g.children.length == 1}).length == 0) {
-        for (const row of RowArray) {
+        for (const row of rowArray) {
             let grid = row.children[row.children.length - 1]
             row.removeChild(grid)
 
             let index = gridArray.indexOf(grid)
             gridArray.splice(index, 1)
         }
-        thirdLastColumn = RowArray.map(r => {return r.children[r.children.length - 3]})
+        thirdLastColumn = rowArray.map(r => {return r.children[r.children.length - 3]})
         columnNum--
     }
 
     while (thirdColumn.filter(g => {return g.children.length == 1}).length == 0) {
         move('left', lineArray.concat(elementArray), 1)
 
-        for (const row of RowArray) {
+        for (const row of rowArray) {
             let grid = row.children[row.children.length - 1]
             row.removeChild(grid)
 
             let index = gridArray.indexOf(grid)
             gridArray.splice(index, 1)
         }
-        thirdColumn = RowArray.map(r => {return r.children[2]})
+        thirdColumn = rowArray.map(r => {return r.children[2]})
         columnNum--
     }
 
     while (thirdLastRow.filter(g => {return g.children.length == 1}).length == 0) {
-        let row = RowArray[RowArray.length - 1]
+        let row = rowArray[rowArray.length - 1]
 
         for (const grid of [...row.children]) {           
             let index = gridArray.indexOf(grid)
             gridArray.splice(index, 1)
         }
-        RowArray.pop()
+        rowArray.pop()
         container.removeChild(row)
-        thirdLastRow = [...RowArray[RowArray.length - 3].children]
+        thirdLastRow = [...rowArray[rowArray.length - 3].children]
         rowNum--
     }
 
     while (thirdRow.filter(g => {return g.children.length == 1}).length == 0) {
         move('up', lineArray.concat(elementArray), 1)
-        let row = RowArray[RowArray.length - 1]
+        let row = rowArray[rowArray.length - 1]
 
         for (const grid of [...row.children]) {           
             let index = gridArray.indexOf(grid)
             gridArray.splice(index, 1)
         }
-        RowArray.pop()
+        rowArray.pop()
         container.removeChild(row)
-        thirdRow = [...RowArray[2].children]
+        thirdRow = [...rowArray[2].children]
         rowNum--
     }
     checkScreenSize()
@@ -814,6 +826,7 @@ resetButton.addEventListener('click', reset)
 autoButton.addEventListener('click', autoFillHydrogen)
 window.addEventListener('resize', checkScreenSize)
 deleteButton.addEventListener('click', changeDelete)
+cycloButton.addEventListener('click', changeCyclo)
 plus.addEventListener('click', zoom)
 minus.addEventListener('click', shrink)
 more.addEventListener('click', () => {
