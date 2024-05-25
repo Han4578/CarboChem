@@ -19,19 +19,19 @@ export class Line {
 
         let oldObj = ElementObjectMatch(oldGrid.children[0])
         let newObj
+        let r = 2
         
         if (!cycloMode) newObj = new Element(selectedElement, newGrid, selectedElementBonds);
 
         if (parseInt(newGrid.dataset.x) > lineObj.x) { // old left new right
-            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x) + 3, parseInt(newGrid.dataset.y), "h", oldObj)
+            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x) + r, parseInt(newGrid.dataset.y), "h", oldObj, r)
             oldObj.checkForExpansion(newObj, 'right')
-            console.log(newObj);
             oldObj.right = newObj
             newObj.left = oldObj
             oldObj.rightBond = selectedLineBonds
             newObj.leftBond = selectedLineBonds
         } else if (parseInt(newGrid.dataset.x) < lineObj.x) { // new left old right
-            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x) - 3, parseInt(newGrid.dataset.y), "h", oldObj)
+            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x) - r, parseInt(newGrid.dataset.y), "h", oldObj, r)
 
             oldObj.checkForExpansion(newObj, 'left')
 
@@ -40,7 +40,7 @@ export class Line {
             oldObj.leftBond = selectedLineBonds
             newObj.rightBond = selectedLineBonds
         } else if (parseInt(newGrid.dataset.y) > lineObj.y) { // old up new down
-            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x), parseInt(newGrid.dataset.y) + 2, "v", oldObj)
+            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x), parseInt(newGrid.dataset.y) + r, "v", oldObj, r)
 
             oldObj.checkForExpansion(newObj, 'down')
 
@@ -49,7 +49,7 @@ export class Line {
             oldObj.lowerBond = selectedLineBonds
             newObj.upperBond = selectedLineBonds
         } else if (parseInt(newGrid.dataset.y) < lineObj.y)  { // new up old down
-            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x), parseInt(newGrid.dataset.y) - 2, "v", oldObj)
+            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x), parseInt(newGrid.dataset.y) - r, "v", oldObj, r)
 
             oldObj.checkForExpansion(newObj, 'up')
 

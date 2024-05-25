@@ -399,15 +399,17 @@ export function newLine(direction, n = 1) {
     }
 
     if (direction == 'left') {
-        move('right', elementArray.concat(lineArray), n)
+        move('right', "all", n)
     }
     
     if (direction == 'up') {
-        move('down', elementArray.concat(lineArray), n)
+        move('down', "all", n)
     }
 }
 
 export function move(direction, stuff, steps) {
+    if (stuff == "all") stuff = lineArray.concat(elementArray).concat(cycloElementArray)
+    else stuff = [...new Set(stuff)]
     for (const s of stuff) {
         let x = s.x
         let y = s.y
@@ -609,7 +611,7 @@ export function trimEdges() {
     }
 
     while (thirdColumn.filter(g => {return g.children.length == 1}).length == 0) {
-        move('left', lineArray.concat(elementArray), 1)
+        move('left', "all", 1)
 
         for (const row of rowArray) {
             let grid = row.children[row.children.length - 1]
@@ -636,7 +638,7 @@ export function trimEdges() {
     }
 
     while (thirdRow.filter(g => {return g.children.length == 1}).length == 0) {
-        move('up', lineArray.concat(elementArray), 1)
+        move('up', "all", 1)
         let row = rowArray[rowArray.length - 1]
 
         for (const grid of [...row.children]) {           
