@@ -215,7 +215,7 @@ export let Name = {
         return lowestNumberChain
     },
 
-    hydrocarbonName(lowestNumberChain, hasMainFunctionalGroup = false, exception, isBranch) {
+    hydrocarbonName(lowestNumberChain, hasMainFunctionalGroup = false, exception = [], isBranch = false) {
         let eneLocation = ''
         let yneLocation = ''
         let length = lowestNumberChain.length
@@ -474,7 +474,7 @@ export let Name = {
             for (const carbon of this.anhydrides[0].neighbourScan()) {
                 let carbonChains = carbonTrace(carbon, this.anhydrides[0])
                 let lowestNumberChain = this.hydrocarbonFilter(carbonChains[0].length, carbonChains, false, [])
-                let carboxylicName = this.hydrocarbonName(lowestNumberChain, [this.anhydrides[0]], true)
+                let carboxylicName = this.hydrocarbonName(lowestNumberChain, false, [this.anhydrides[0]], true)
 
                 this.main = this.main.concat(lowestNumberChain).concat(carbon.neighbourScan().filter(o => {return o.name == "O"}))
                 carboxylicName = carboxylicName.slice(0, -1) + "oic"
