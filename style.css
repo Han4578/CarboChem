@@ -94,7 +94,7 @@ img {
     flex-basis: calc(var(--width) * 1px);
     width: calc(var(--width) * 1px);
     aspect-ratio: 1;
-    border: 1px solid black;
+    /* border: 1px solid black; */
     font-size: calc(var(--width) * 0.64 * 1px);
     display: flex;
     justify-content: center;
