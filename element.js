@@ -103,8 +103,7 @@ export class Element {
                 
                 let ElementsToMove = [this, ...this.trace([this.left])].filter(e => {return e.x >= this.x})
 
-                if (obj.isCyclo) ElementsToMove.push(...obj.cyclo.elementArray)
-                else obj.x += 2
+                obj.x += 2
                 move('right', ElementsToMove, 2)
                 refreshNeeded = true
                 this.extendedLeft = true
@@ -124,8 +123,7 @@ export class Element {
 
                 let ElementsToMove = [this, ...this.trace([this.up])].filter(e => {return e.y >= this.y})
 
-                if (obj.isCyclo) ElementsToMove.push(...obj.cyclo.elementArray)
-                else obj.y += 2
+                obj.y += 2
                 move('down', ElementsToMove, 2)
                 refreshNeeded = true
                 this.extendedUp = true

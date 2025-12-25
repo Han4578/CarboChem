@@ -1,6 +1,5 @@
-import { cycloMode, selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage, selectedLineBonds, removeClickableLines, lineArray, retractElements, refreshAllLines, refreshName} from "./main.js"
+import { selectedElement, selectedElementBonds, locateGrid, lineObjectMatch, ElementObjectMatch, checkAllForBlockage, selectedLineBonds, removeClickableLines, lineArray, retractElements, refreshAllLines, refreshName} from "./main.js"
 import { Element } from "./element.js"
-import { Cyclo } from "./cyclo.js"
 export class Line {
     constructor(orientation, location, bonds, parent) {
         this.orientation = orientation
@@ -21,18 +20,15 @@ export class Line {
         let newObj
         let r = 2
         
-        if (!cycloMode) newObj = new Element(selectedElement, newGrid, selectedElementBonds);
+        newObj = new Element(selectedElement, newGrid, selectedElementBonds);
 
         if (parseInt(newGrid.dataset.x) > lineObj.x) { // old left new right
-            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x) + r, parseInt(newGrid.dataset.y), "h", oldObj, r)
             oldObj.checkForExpansion(newObj, 'right')
             oldObj.right = newObj
             newObj.left = oldObj
             oldObj.rightBond = selectedLineBonds
             newObj.leftBond = selectedLineBonds
         } else if (parseInt(newGrid.dataset.x) < lineObj.x) { // new left old right
-            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x) - r, parseInt(newGrid.dataset.y), "h", oldObj, r)
-
             oldObj.checkForExpansion(newObj, 'left')
 
             oldObj.left = newObj
@@ -40,8 +36,6 @@ export class Line {
             oldObj.leftBond = selectedLineBonds
             newObj.rightBond = selectedLineBonds
         } else if (parseInt(newGrid.dataset.y) > lineObj.y) { // old up new down
-            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x), parseInt(newGrid.dataset.y) + r, "v", oldObj, r)
-
             oldObj.checkForExpansion(newObj, 'down')
 
             oldObj.down = newObj
@@ -49,8 +43,6 @@ export class Line {
             oldObj.lowerBond = selectedLineBonds
             newObj.upperBond = selectedLineBonds
         } else if (parseInt(newGrid.dataset.y) < lineObj.y)  { // new up old down
-            if (cycloMode) newObj = new Cyclo(parseInt(newGrid.dataset.x), parseInt(newGrid.dataset.y) - r, "v", oldObj, r)
-
             oldObj.checkForExpansion(newObj, 'up')
 
             oldObj.up = newObj

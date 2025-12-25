@@ -5,7 +5,6 @@ import { Name } from "./name.js"
 let container = document.querySelector('.container')
 let resetButton = document.querySelector('.reset')
 let autoButton = document.querySelector('.auto')
-let cycloButton = document.querySelector('.cyclo')
 let deleteButton = document.querySelector('.delete')
 let elementButton = document.querySelector('.element-button')
 let elementMenu = document.querySelector('.element-menu')
@@ -29,12 +28,9 @@ export let rowArray = []
 export let elementDictionary = {}
 export let lineDictionary = {}
 export let deleteMode = false
-export let cycloMode = false
 export let highlight = false
 export let lineArray = []
-export let cycloArray = []
 export let elementArray = []
-export let cycloElementArray = []
 export let selectedElement = 'C'
 export let selectedElementBonds = 4
 export let selectedLineBonds = 1
@@ -48,7 +44,6 @@ function reset() {
     rowArray = []
     lineArray = []
     elementArray = []
-    cycloElementArray = []
     columnNum = 5
     rowNum = 5
     changeElementSelection('C', 4)
@@ -408,7 +403,7 @@ export function newLine(direction, n = 1) {
 }
 
 export function move(direction, stuff, steps) {
-    if (stuff == "all") stuff = lineArray.concat(elementArray).concat(cycloElementArray)
+    if (stuff == "all") stuff = lineArray.concat(elementArray)
     else stuff = [...new Set(stuff)]
     for (const s of stuff) {
         let x = s.x
@@ -509,7 +504,6 @@ export function changeDelete() {
     deleteButton.classList.toggle('selected')
     deleteMode = !deleteMode
     if (deleteMode) { //turn on
-        if (cycloMode) changeCyclo()
         for (const lineObj of lineArray) {
             lineObj.element.removeEventListener('click', lineObj.addElement)
             lineObj.element.classList.remove('clickable')
@@ -527,14 +521,6 @@ export function changeDelete() {
             }
         }
         refreshClickableLines()
-    }
-}
-
-export function changeCyclo() {
-    cycloButton.classList.toggle('selected')
-    cycloMode = !cycloMode
-    if (cycloMode) { //turn on
-        if (deleteMode) changeDelete()
     }
 }
 
@@ -828,7 +814,6 @@ resetButton.addEventListener('click', reset)
 autoButton.addEventListener('click', autoFillHydrogen)
 window.addEventListener('resize', checkScreenSize)
 deleteButton.addEventListener('click', changeDelete)
-cycloButton.addEventListener('click', changeCyclo)
 plus.addEventListener('click', zoom)
 minus.addEventListener('click', shrink)
 more.addEventListener('click', () => {
