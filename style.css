@@ -365,6 +365,10 @@ div.selected {
     pointer-events: all;
 }
 
+.darken:not(.show) .show {
+    display: none;
+}
+
 .zoom-menu {
     position: absolute;
     left: 10px;
